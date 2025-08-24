@@ -19,6 +19,7 @@ import {
   chatMessageSchema,
   type ChatMessageFormData,
 } from "@/modules/chat/schemas/chat-schema";
+import { BorderBeam } from "@/components/magicui/border-beam";
 
 export const ChatView = () => {
   const form = useForm<ChatMessageFormData>({
@@ -64,7 +65,7 @@ export const ChatView = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <div className="border-input bg-background focus-within:ring-ring flex flex-col rounded-md border px-4 py-4 focus-within:ring-2 focus-within:ring-offset-2">
+                      <div className="border-input bg-background focus-within:ring-ring relative flex flex-col overflow-hidden rounded-md border px-4 py-4 focus-within:ring-2 focus-within:ring-offset-2">
                         <Textarea
                           placeholder="Type your message here..."
                           className="max-h-[200px] min-h-[44px] flex-1 resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -80,6 +81,7 @@ export const ChatView = () => {
                             Ask
                           </Button>
                         </div>
+                        <BorderBeam />
                       </div>
                     </FormControl>
                     <FormMessage />
