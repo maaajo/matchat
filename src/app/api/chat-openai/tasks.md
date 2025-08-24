@@ -16,9 +16,13 @@ tokens for a chat UI.
 
 ### 1.2 Environment Configuration
 
-- [ ] Add `OPENAI_API_KEY` to environment variables
-- [ ] Add `OPENAI_DEFAULT_MODEL` (e.g., "gpt-4o-mini") to environment variables
-- [ ] Update env validation schemas to include OpenAI config
+- [x] Add `OPENAI_API_KEY` to environment variables
+- [x] Add `OPENAI_DEFAULT_MODEL` (e.g., "gpt-4o-mini") to environment variables
+- [x] Update env validation schemas in `src/env/server.ts` to include OpenAI
+      config
+- [x] Add `OPENAI_API_KEY: z.string().min(1)` to serverEnv schema
+- [x] Add `OPENAI_DEFAULT_MODEL: z.string().min(1)` to serverEnv schema (no
+      default, use process.env directly)
 
 ## Phase 2: Core Implementation
 
