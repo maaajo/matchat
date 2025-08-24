@@ -28,18 +28,27 @@ tokens for a chat UI.
 
 ### 2.1 Create Route File
 
-- [ ] Create `/api/chat-openai/route.ts`
-- [ ] Implement POST method handler
-- [ ] Add proper TypeScript types and imports
+- [x] Create `/api/chat-openai/route.ts`
+- [x] Implement POST method handler
 
-### 2.2 Authentication Layer
+### 2.2 Create Unified API Response Type
 
-- [ ] Import and configure better-auth for server-side auth
-- [ ] Implement authentication check inside route handler
-- [ ] Return 401 with proper JSON response on auth failure
-- [ ] Extract user ID for future rate limiting (v2)
+- [x] Create a union type for standardized API responses:
+  - Define status type: `type ApiStatus = "success" | "error"`
+  - Success case: `{ status: ApiStatus, response: T, timestamp?: string }`
+  - Error case:
+    `{ status: ApiStatus, errorMessage: string, errorCode?: string, timestamp?: string }`
+- [x] Implement proper TypeScript types for the response union
+- [x] Use this type consistently across all API endpoints
 
-### 2.3 Request Validation Schema
+### 2.3 Authentication Layer
+
+- [x] Import and configure better-auth for server-side auth
+- [x] Implement authentication check inside route handler
+- [x] Return 401 with proper JSON response on auth failure
+- [x] Extract user ID for future rate limiting (v2)
+
+### 2.4 Request Validation Schema
 
 - [ ] Create Zod schema for request validation with:
   - `messages` array (max 30, each content 1-4000 chars)
@@ -51,7 +60,7 @@ tokens for a chat UI.
 - [ ] Implement total content length validation (max 40,000 chars)
 - [ ] Add proper error messages for validation failures
 
-### 2.4 OpenAI Integration
+### 2.5 OpenAI Integration
 
 - [ ] Initialize OpenAI client with API key
 - [ ] Implement chat completion call with streaming
@@ -59,7 +68,7 @@ tokens for a chat UI.
 - [ ] Pass through all validated parameters to OpenAI
 - [ ] Prefer Responses API, fallback to Chat Completions if needed
 
-### 2.5 Streaming Implementation
+### 2.6 Streaming Implementation
 
 - [ ] Set proper SSE headers:
   - `Content-Type: text/event-stream; charset=utf-8`
@@ -69,7 +78,7 @@ tokens for a chat UI.
 - [ ] Implement streaming response using OpenAI SDK passthrough
 - [ ] Ensure no custom event re-enveloping (pure passthrough)
 
-### 2.6 Error Handling
+### 2.7 Error Handling
 
 - [ ] Handle 400 validation failures with Zod error details
 - [ ] Handle upstream non-2xx responses with JSON (no stream)
@@ -77,7 +86,7 @@ tokens for a chat UI.
 - [ ] Never expose `OPENAI_API_KEY` in responses
 - [ ] Add proper error logging with request IDs
 
-### 2.7 Abort & Cleanup
+### 2.8 Abort & Cleanup
 
 - [ ] Listen to request abort signal
 - [ ] Propagate client cancel to OpenAI SDK
