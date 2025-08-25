@@ -3,8 +3,9 @@ import { auth } from "@/lib/auth";
 import { StatusCodes } from "http-status-codes";
 import { headers } from "next/headers";
 import { z } from "zod";
-import { messageSchema } from "@/app/api/chat-openai/schema";
+import { chatInputSchema, ChatInput } from "@/app/api/chat-openai/schema";
 import { ApiResponse } from "@/lib/types/api-types";
+import { API_STATUSES } from "@/lib/types/api-types";
 
 export default async function POST(
   req: NextRequest,
@@ -18,11 +19,31 @@ export default async function POST(
     return NextResponse.json({
       errorCode: StatusCodes.UNAUTHORIZED,
       errorMessage: "Unauthorized",
-      status: "error",
+      status: API_STATUSES.ERROR,
       timestamp: new Date().toISOString(),
     });
   }
 
   if (!req.body) {
+    return NextResponse.json({
+      errorCode: StatusCodes.BAD_REQUEST,
+      errorMessage: "Missing body",
+      status: API_STATUSES.ERROR,
+      timestamp: new Date().toISOString(),
+    });
   }
+
+  const parseResult = await chatInputSchema.safeParseAsync(req.body);
+
+  if (!parseResult.success) {
+    return NextResponse.json({
+      errorCode: StatusCodes.BAD_REQUEST,
+      errorMessage: parseResult.error.toString(),
+      status: API_STATUSES.ERROR,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // Successfully parsed request body as ChatInput schema
+  const parsedData: ChatInput = parseResult.data;
 }

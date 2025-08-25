@@ -56,7 +56,9 @@ tokens for a chat UI.
   - `previous_response_id`: optional string (for continuing the conversation)
   - `model`: optional string (use server default if omitted)
 - [x] Add clear error messages for validation failures
-- [ ] Add request body validation to parse against created zod schema
+- [x] Add empty request body validation
+- [x] Add request body validation to parse against created zod schema
+- [x] Parse request body as the type of zod schema
 
 ### 2.5 OpenAI Integration
 

@@ -14,7 +14,7 @@ const ResponseInputItemSchema = z.object({
 // Define the ResponseInput schema as an array of ResponseInputItem
 const ResponseInputSchema = z.array(ResponseInputItemSchema);
 
-const messageSchema = z.object({
+const chatInputSchema = z.object({
   input: z.union(
     [z.string().min(1, "Input cannot be empty"), ResponseInputSchema],
     {
@@ -28,4 +28,7 @@ const messageSchema = z.object({
   model: z.string().optional(),
 });
 
-export { messageSchema };
+export { chatInputSchema };
+
+// Export the TypeScript type for the input schema
+export type ChatInput = z.infer<typeof chatInputSchema>;

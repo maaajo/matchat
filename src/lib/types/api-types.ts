@@ -1,18 +1,18 @@
 import { StatusCodes } from "http-status-codes";
 
-type ApiStatus = {
-  SUCCESS: "success";
-  ERROR: "error";
-};
+export const API_STATUSES = {
+  SUCCESS: "success",
+  ERROR: "error",
+} as const;
 
 type ApiSuccessResponse<T> = {
-  status: ApiStatus["SUCCESS"];
+  status: typeof API_STATUSES.SUCCESS;
   response: T;
   timestamp?: string;
 };
 
 type ApiErrorResponse = {
-  status: ApiStatus["ERROR"];
+  status: typeof API_STATUSES.ERROR;
   errorCode: StatusCodes;
   errorMessage: string;
   timestamp?: string;
