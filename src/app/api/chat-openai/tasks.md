@@ -50,15 +50,13 @@ tokens for a chat UI.
 
 ### 2.4 Request Validation Schema
 
-- [ ] Create Zod schema for request validation with:
-  - `messages` array (max 30, each content 1-4000 chars)
-  - `system` optional string
-  - `model` optional string
-  - `temperature` optional number [0, 2]
-  - `maxOutputTokens` optional positive integer
-  - `responseFormat` optional (text or json_schema)
-- [ ] Implement total content length validation (max 40,000 chars)
-- [ ] Add proper error messages for validation failures
+- [x] Create Zod schema for request validation aligned to Responses API:
+  - `input`: required; either string or ResponseInput
+    "openai/resources/responses/responses"
+  - `previous_response_id`: optional string (for continuing the conversation)
+  - `model`: optional string (use server default if omitted)
+- [x] Add clear error messages for validation failures
+- [ ] Add request body validation to parse against created zod schema
 
 ### 2.5 OpenAI Integration
 
