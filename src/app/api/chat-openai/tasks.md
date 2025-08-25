@@ -62,11 +62,10 @@ tokens for a chat UI.
 
 ### 2.5 OpenAI Integration
 
-- [ ] Initialize OpenAI client with API key
+- [x] Initialize OpenAI client with API key
 - [ ] Implement chat completion call with streaming
-- [ ] Handle model selection (use default if not specified)
-- [ ] Pass through all validated parameters to OpenAI
-- [ ] Prefer Responses API, fallback to Chat Completions if needed
+- [x] Handle model selection (use default if not specified)
+- [x] Pass through all validated parameters to OpenAI
 
 ### 2.6 Streaming Implementation
 
