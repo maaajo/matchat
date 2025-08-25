@@ -79,11 +79,11 @@ tokens for a chat UI.
 
 ### 2.7 Error Handling
 
-- [ ] Handle 400 validation failures with Zod error details
-- [ ] Handle upstream non-2xx responses with JSON (no stream)
-- [ ] Handle mid-stream upstream errors (close connection)
-- [ ] Never expose `OPENAI_API_KEY` in responses
-- [ ] Add proper error logging with request IDs
+- [x] Handle 400 validation failures with Zod error details
+- [x] Handle upstream non-2xx responses with JSON (no stream)
+- [x] Handle mid-stream upstream errors (close connection)
+- [x] Never expose `OPENAI_API_KEY` in responses
+- [x] Add proper error logging with request IDs
 
 ### 2.8 Abort & Cleanup
 

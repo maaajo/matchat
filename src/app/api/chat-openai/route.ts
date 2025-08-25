@@ -7,16 +7,20 @@ import { ApiErrorResponse } from "@/lib/types/api-types";
 import { API_STATUSES } from "@/lib/types/api-types";
 import OpenAI from "openai";
 import { serverEnv } from "@/env/server";
+import { parseOpenAIError } from "@/lib/utils";
 
 export async function POST(
   req: NextRequest,
 ): Promise<Response | NextResponse<ApiErrorResponse>> {
+  // Generate unique request ID for tracking
+
   const headersList = await headers();
   const session = await auth.api.getSession({
     headers: headersList,
   });
 
   if (!session) {
+    console.error(`Authentication failed for user`);
     return NextResponse.json({
       errorCode: StatusCodes.UNAUTHORIZED,
       errorMessage: "Unauthorized",
@@ -28,6 +32,7 @@ export async function POST(
   const reqBody = await req.json();
 
   if (!reqBody) {
+    console.error(`Missing request body`);
     return NextResponse.json({
       errorCode: StatusCodes.BAD_REQUEST,
       errorMessage: "Missing body",
@@ -39,6 +44,7 @@ export async function POST(
   const parseReqBody = await chatInputSchema.safeParseAsync(reqBody);
 
   if (!parseReqBody.success) {
+    console.error(`Validation failed:`, parseReqBody.error.toString());
     return NextResponse.json({
       errorCode: StatusCodes.BAD_REQUEST,
       errorMessage: parseReqBody.error.toString(),
@@ -52,6 +58,10 @@ export async function POST(
   const openai = new OpenAI();
 
   try {
+    console.log(
+      `Starting OpenAI chat completion with model: ${reqData.model || serverEnv.OPENAI_DEFAULT_MODEL}`,
+    );
+
     const responseStream = await openai.responses.create({
       model: serverEnv.OPENAI_DEFAULT_MODEL,
       stream: true,
@@ -66,10 +76,19 @@ export async function POST(
       },
     });
   } catch (error) {
+    console.error(`OpenAI API error:`, error);
+
+    const { errorCode, errorMessage } =
+      error instanceof Error
+        ? parseOpenAIError(error)
+        : {
+            errorCode: StatusCodes.INTERNAL_SERVER_ERROR,
+            errorMessage: "Unknown error occurred",
+          };
+
     return NextResponse.json({
-      errorCode: StatusCodes.INTERNAL_SERVER_ERROR,
-      errorMessage:
-        error instanceof Error ? error.message : "Unknown error occurred",
+      errorCode,
+      errorMessage,
       status: API_STATUSES.ERROR,
       timestamp: new Date().toISOString(),
     });
