@@ -11,7 +11,7 @@ type ApiSuccessResponse<T> = {
   timestamp?: string;
 };
 
-type ApiErrorResponse = {
+export type ApiErrorResponse = {
   status: typeof API_STATUSES.ERROR;
   errorCode: StatusCodes;
   errorMessage: string;

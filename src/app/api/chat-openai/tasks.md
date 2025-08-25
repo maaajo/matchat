@@ -63,19 +63,19 @@ tokens for a chat UI.
 ### 2.5 OpenAI Integration
 
 - [x] Initialize OpenAI client with API key
-- [ ] Implement chat completion call with streaming
+- [x] Implement chat completion call with streaming
 - [x] Handle model selection (use default if not specified)
 - [x] Pass through all validated parameters to OpenAI
 
 ### 2.6 Streaming Implementation
 
-- [ ] Set proper SSE headers:
+- [x] Set proper SSE headers:
   - `Content-Type: text/event-stream; charset=utf-8`
   - `Cache-Control: no-store, no-transform`
   - `Connection: keep-alive`
-- [ ] Disable compression for this route
-- [ ] Implement streaming response using OpenAI SDK passthrough
-- [ ] Ensure no custom event re-enveloping (pure passthrough)
+- [x] Disable compression for this route
+- [x] Implement streaming response using OpenAI SDK passthrough
+- [x] Ensure no custom event re-enveloping (pure passthrough)
 
 ### 2.7 Error Handling
 
