@@ -97,66 +97,28 @@ tokens for a chat UI.
 
 ### 3.1 Test Setup
 
-- [ ] Configure Vitest for API route testing
-- [ ] Set up test environment variables
-- [ ] Create test utilities for auth mocking
+- [x] Configure Vitest for API route testing
+- [x] Set up test environment variables
+- [x] Create test utilities for auth mocking
 
-### 3.2 Schema Validation Tests
+### 3.2 Route Behavior Tests
 
-- [ ] Test valid request payloads
-- [ ] Test message count limits (max 30)
-- [ ] Test per-message content length limits (1-4000 chars)
-- [ ] Test total content length limit (40,000 chars)
-- [ ] Test temperature bounds [0, 2]
-- [ ] Test maxOutputTokens validation
-- [ ] Test responseFormat validation
-
-### 3.3 Route Behavior Tests
-
-- [ ] Test happy path streaming
-- [ ] Test authentication failure (401)
+- [x] Test authentication failure (401)
 - [ ] Test validation failures (400)
+- [ ] Test happy path streaming
 - [ ] Test upstream error handling
 - [ ] Test client abort/cancellation
 - [ ] Test SSE headers are set correctly
 
-### 3.4 Integration Tests
+## Phase 4: Documentation & Validation
 
-- [ ] Mock OpenAI SDK responses
-- [ ] Test streaming behavior with mocked responses
-- [ ] Test error propagation from OpenAI
-- [ ] Test abort signal handling
-
-## Phase 4: Configuration & Optimization
-
-### 4.1 Route Configuration
-
-- [ ] Disable compression for `/api/chat-openai` route
-- [ ] Configure proper timeout settings
-- [ ] Set appropriate body size limits
-
-### 4.2 Observability
-
-- [ ] Add request ID logging
-- [ ] Log chosen model and duration
-- [ ] Capture token usage if available
-- [ ] Avoid logging raw prompts/PII by default
-
-### 4.3 Security Hardening
-
-- [ ] Verify no sensitive data exposure
-- [ ] Test rate limiting preparation (for v2)
-- [ ] Ensure proper input sanitization
-
-## Phase 5: Documentation & Validation
-
-### 5.1 API Documentation
+### 4.1 API Documentation
 
 - [ ] Document request/response contracts
 - [ ] Document error codes and messages
 - [ ] Add usage examples
 
-### 5.2 Acceptance Criteria Validation
+### 4.2 Acceptance Criteria Validation
 
 - [ ] Verify authenticated users can POST and receive live stream
 - [ ] Verify Zod rejects invalid payloads with 400 and clear reasons

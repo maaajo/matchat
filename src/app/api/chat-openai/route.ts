@@ -19,36 +19,45 @@ export async function POST(
 
   if (!session) {
     console.error(`Authentication failed for user`);
-    return NextResponse.json({
-      errorCode: StatusCodes.UNAUTHORIZED,
-      errorMessage: "Unauthorized",
-      status: API_STATUSES.ERROR,
-      timestamp: new Date().toISOString(),
-    });
+    return NextResponse.json(
+      {
+        errorCode: StatusCodes.UNAUTHORIZED,
+        errorMessage: "Unauthorized",
+        status: API_STATUSES.ERROR,
+        timestamp: new Date().toISOString(),
+      },
+      { status: StatusCodes.UNAUTHORIZED },
+    );
   }
 
   const reqBody = await req.json();
 
   if (!reqBody) {
     console.error(`Missing request body`);
-    return NextResponse.json({
-      errorCode: StatusCodes.BAD_REQUEST,
-      errorMessage: "Missing body",
-      status: API_STATUSES.ERROR,
-      timestamp: new Date().toISOString(),
-    });
+    return NextResponse.json(
+      {
+        errorCode: StatusCodes.BAD_REQUEST,
+        errorMessage: "Missing body",
+        status: API_STATUSES.ERROR,
+        timestamp: new Date().toISOString(),
+      },
+      { status: StatusCodes.BAD_REQUEST },
+    );
   }
 
   const parseReqBody = await chatInputSchema.safeParseAsync(reqBody);
 
   if (!parseReqBody.success) {
     console.error(`Validation failed:`, parseReqBody.error.toString());
-    return NextResponse.json({
-      errorCode: StatusCodes.BAD_REQUEST,
-      errorMessage: parseReqBody.error.toString(),
-      status: API_STATUSES.ERROR,
-      timestamp: new Date().toISOString(),
-    });
+    return NextResponse.json(
+      {
+        errorCode: StatusCodes.BAD_REQUEST,
+        errorMessage: parseReqBody.error.toString(),
+        status: API_STATUSES.ERROR,
+        timestamp: new Date().toISOString(),
+      },
+      { status: StatusCodes.BAD_REQUEST },
+    );
   }
 
   const reqData = parseReqBody.data;
@@ -89,11 +98,14 @@ export async function POST(
             errorMessage: "Unknown error occurred",
           };
 
-    return NextResponse.json({
-      errorCode,
-      errorMessage,
-      status: API_STATUSES.ERROR,
-      timestamp: new Date().toISOString(),
-    });
+    return NextResponse.json(
+      {
+        errorCode,
+        errorMessage,
+        status: API_STATUSES.ERROR,
+        timestamp: new Date().toISOString(),
+      },
+      { status: errorCode },
+    );
   }
 }
