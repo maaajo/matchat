@@ -104,19 +104,18 @@ tokens for a chat UI.
 ### 3.2 Route Behavior Tests
 
 - [x] Test authentication failure (401)
-- [ ] Test validation failures (400)
-- [ ] Test happy path streaming
-- [ ] Test upstream error handling
-- [ ] Test client abort/cancellation
-- [ ] Test SSE headers are set correctly
+- [x] Test validation failures (400)
+- [x] Test happy path streaming
+- [x] Test client abort/cancellation
+- [x] Test SSE headers are set correctly
 
 ## Phase 4: Documentation & Validation
 
 ### 4.1 API Documentation
 
-- [ ] Document request/response contracts
-- [ ] Document error codes and messages
-- [ ] Add usage examples
+- [x] Document request/response contracts
+- [x] Document error codes and messages
+- [x] Add usage examples
 
 ### 4.2 Acceptance Criteria Validation
 

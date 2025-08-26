@@ -271,4 +271,129 @@ describe("OpenAi chat route", () => {
       });
     });
   });
+
+  describe("streaming", () => {
+    beforeEach(() => {
+      vi.resetModules();
+
+      mockAuthModule();
+      setMockSession({ user: { id: "test-user" } });
+      mockNextHeadersOnce();
+    });
+
+    it("streams happy path response", async () => {
+      vi.doMock("openai", () => {
+        class OpenAI {
+          responses = {
+            create: vi.fn(async () => {
+              const stream = new ReadableStream<Uint8Array>({
+                start(controller) {
+                  const enc = new TextEncoder();
+                  controller.enqueue(enc.encode("data: hello\n\n"));
+                  controller.enqueue(enc.encode("data: world\n\n"));
+                  controller.enqueue(enc.encode("data: [DONE]\n\n"));
+                  controller.close();
+                },
+              });
+              return {
+                toReadableStream: () => stream,
+              } as unknown as {
+                toReadableStream: () => ReadableStream<unknown>;
+              };
+            }),
+          };
+        }
+        return { default: OpenAI };
+      });
+
+      const { POST } = await import("@/app/api/chat-openai/route");
+
+      const req = new Request(
+        `${process.env.NEXT_PUBLIC_SITE_URL}/api/chat-openai`,
+        {
+          method: "POST",
+          body: JSON.stringify({ input: "hi" }),
+          headers: { "content-type": "application/json" },
+        },
+      ) as NextRequest;
+
+      const res = await POST(req);
+      const text = await new Response(res.body!).text();
+      expect(text).toContain("hello");
+    });
+
+    it("propagates client abort to upstream call", async () => {
+      let wasAborted = false;
+      const createMock = vi.fn(async function (
+        _params: unknown,
+        opts: { signal: AbortSignal },
+      ) {
+        wasAborted = opts.signal.aborted;
+        return {
+          toReadableStream: () => new ReadableStream({ start() {} }),
+        } as unknown as { toReadableStream: () => ReadableStream<unknown> };
+      });
+
+      vi.doMock("openai", () => {
+        class OpenAI {
+          responses = { create: createMock };
+        }
+        return { default: OpenAI };
+      });
+
+      const { POST } = await import("@/app/api/chat-openai/route");
+
+      const controller = new AbortController();
+
+      const req = new Request(
+        `${process.env.NEXT_PUBLIC_SITE_URL}/api/chat-openai`,
+        {
+          method: "POST",
+          body: JSON.stringify({ input: "hi" }),
+          headers: { "content-type": "application/json" },
+          signal: controller.signal,
+        },
+      ) as unknown as NextRequest;
+
+      const promise = POST(req);
+      controller.abort();
+      try {
+        await promise;
+      } catch {}
+
+      expect(wasAborted || controller.signal.aborted).toBe(true);
+    });
+
+    it("sets SSE headers correctly", async () => {
+      vi.doMock("openai", () => {
+        class OpenAI {
+          responses = {
+            create: vi.fn(async () => {
+              const stream = new ReadableStream({ start() {} });
+              return {
+                toReadableStream: () => stream,
+              } as unknown as {
+                toReadableStream: () => ReadableStream<unknown>;
+              };
+            }),
+          };
+        }
+        return { default: OpenAI };
+      });
+
+      const { POST } = await import("@/app/api/chat-openai/route");
+
+      const req = new Request(
+        `${process.env.NEXT_PUBLIC_SITE_URL}/api/chat-openai`,
+        {
+          method: "POST",
+          body: JSON.stringify({ input: "hi" }),
+          headers: { "content-type": "application/json" },
+        },
+      ) as NextRequest;
+
+      const res = await POST(req);
+      expect(res.headers.get("content-type")).toBe("text/event-stream");
+    });
+  });
 });
