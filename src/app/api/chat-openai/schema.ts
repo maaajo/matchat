@@ -14,19 +14,21 @@ const ResponseInputItemSchema = z.object({
 // Define the ResponseInput schema as an array of ResponseInputItem
 const ResponseInputSchema = z.array(ResponseInputItemSchema);
 
-const chatInputSchema = z.object({
-  input: z.union(
-    [z.string().min(1, "Input cannot be empty"), ResponseInputSchema],
-    {
-      errorMap: () => ({
-        message:
-          "Input must be either a non-empty string or an array of message objects",
-      }),
-    },
-  ),
-  previous_response_id: z.string().optional(),
-  model: z.string().optional(),
-});
+const chatInputSchema = z
+  .object({
+    input: z.union(
+      [z.string().min(1, "Input cannot be empty"), ResponseInputSchema],
+      {
+        errorMap: () => ({
+          message:
+            "Input must be either a non-empty string or an array of message objects",
+        }),
+      },
+    ),
+    previous_response_id: z.string().optional(),
+    model: z.string().optional(),
+  })
+  .strict();
 
 export { chatInputSchema };
 
