@@ -30,9 +30,7 @@ export async function POST(
     );
   }
 
-  const reqBody = await req.json();
-
-  if (!reqBody) {
+  if (!req.body) {
     console.error(`Missing request body`);
     return NextResponse.json(
       {
@@ -44,6 +42,8 @@ export async function POST(
       { status: StatusCodes.BAD_REQUEST },
     );
   }
+
+  const reqBody = await req.json();
 
   const parseReqBody = await chatInputSchema.safeParseAsync(reqBody);
 
