@@ -12,8 +12,6 @@ import { parseOpenAIError } from "@/lib/utils";
 export async function POST(
   req: NextRequest,
 ): Promise<Response | NextResponse<ApiErrorResponse>> {
-  // Generate unique request ID for tracking
-
   const headersList = await headers();
   const session = await auth.api.getSession({
     headers: headersList,
@@ -62,11 +60,16 @@ export async function POST(
       `Starting OpenAI chat completion with model: ${reqData.model || serverEnv.OPENAI_DEFAULT_MODEL}`,
     );
 
-    const responseStream = await openai.responses.create({
-      model: serverEnv.OPENAI_DEFAULT_MODEL,
-      stream: true,
-      ...reqData,
-    });
+    const responseStream = await openai.responses.create(
+      {
+        model: serverEnv.OPENAI_DEFAULT_MODEL,
+        stream: true,
+        ...reqData,
+      },
+      {
+        signal: req.signal,
+      },
+    );
 
     return new Response(responseStream.toReadableStream(), {
       headers: {

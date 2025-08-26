@@ -87,11 +87,11 @@ tokens for a chat UI.
 
 ### 2.8 Abort & Cleanup
 
-- [ ] Listen to request abort signal
-- [ ] Propagate client cancel to OpenAI SDK
-- [ ] Abort upstream request if client disconnects
-- [ ] Close server stream promptly
-- [ ] Free sockets/resources on completion
+- [x] Listen to request abort signal
+- [x] Propagate client cancel to OpenAI SDK
+- [x] Abort upstream request if client disconnects
+- [x] Close server stream promptly
+- [x] Free sockets/resources on completion
 
 ## Phase 3: Testing
 
