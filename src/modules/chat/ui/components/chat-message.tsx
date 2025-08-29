@@ -69,9 +69,7 @@ const ChatMessageContent = ({
       {...props}
       className={cn(
         "px-4 py-2 shadow-sm",
-        variant === MESSAGE_VARIANTS.USER
-          ? "bg-primary text-primary-foreground border-primary"
-          : "bg-muted text-muted-foreground border-muted",
+        variant === MESSAGE_VARIANTS.USER ? "border-primary" : "border-muted",
         className,
       )}
     >

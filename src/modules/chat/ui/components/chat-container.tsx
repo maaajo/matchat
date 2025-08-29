@@ -12,10 +12,7 @@ export const ChatContainer = ({
 }: ChatContainerProps) => {
   return (
     <section
-      className={cn(
-        "flex flex-1 flex-col items-center justify-center",
-        className,
-      )}
+      className={cn("flex flex-1 flex-col gap-y-2", className)}
       {...props}
     >
       {children}

@@ -24,8 +24,11 @@ import { ChatContainer } from "@/modules/chat/ui/components/chat-container";
 import { useState } from "react";
 import {
   ChatMessage,
+  ChatMessageContent,
   MESSAGE_VARIANTS,
 } from "@/modules/chat/ui/components/chat-message";
+import { useWatch } from "react-hook-form";
+import { cn } from "@/lib/utils";
 
 export const ChatView = () => {
   const [messages, setMessages] = useState<string[]>([]);
@@ -37,6 +40,15 @@ export const ChatView = () => {
   });
 
   const { isSubmitting } = form.formState;
+  const userMessage = useWatch({
+    control: form.control,
+    name: "message",
+    compute: (data: string) => {
+      return data.length ? data : "";
+    },
+  });
+
+  console.log(userMessage);
 
   const onSubmit = (data: ChatMessageFormData) => {
     console.log("Message submitted:", data.message);
@@ -47,21 +59,37 @@ export const ChatView = () => {
 
   return (
     <>
-      <ChatContainer className="w-full px-4 py-4">
+      <ChatContainer
+        className={cn(
+          "w-full px-4 py-12",
+          messages.length === 0 ? "items-center justify-center" : null,
+        )}
+      >
         {messages.length === 0 ? (
-          <>
-            <h4 className="max-w-md text-center text-xl font-bold">
-              Ready to chat? Let&apos;s explore together!
-            </h4>
-            <p className="text-muted-foreground mt-4 text-center text-sm">
-              Just start typing your message in the box below and let&apos;s get
-              this conversation going! 🚀
-            </p>
-          </>
+          userMessage ? (
+            <>
+              <h4 className="max-w-md text-center text-xl font-bold">
+                Looks great, ready to send?
+              </h4>
+              <p className="text-muted-foreground text-center text-sm">
+                You&apos;ve started typing. Hit Ask to share your message.
+              </p>
+            </>
+          ) : (
+            <>
+              <h4 className="max-w-md text-center text-xl font-bold">
+                Ready to chat? Let&apos;s explore together!
+              </h4>
+              <p className="text-muted-foreground text-center text-sm">
+                Just start typing your message in the box below and let&apos;s
+                get this conversation going! 🚀
+              </p>
+            </>
+          )
         ) : (
           messages.map(message => (
             <ChatMessage key={message} variant={MESSAGE_VARIANTS.USER}>
-              {message}
+              <ChatMessageContent>{message}</ChatMessageContent>
             </ChatMessage>
           ))
         )}
