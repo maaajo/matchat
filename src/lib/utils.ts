@@ -5,7 +5,7 @@ import { createAvatar } from "@dicebear/core";
 import { avataaars, bottts, initials } from "@dicebear/collection";
 
 export const AVATAR_VARIANTS = {
-  INTITIALS: "initials",
+  INITIALS: "initials",
   BOTTTS: "bottts",
   AVATAAARS: "avataaars",
 } as const;
@@ -16,23 +16,28 @@ type GenerateAvatarUriProps = {
 };
 
 export const generateAvatarUri = ({
-  variant = "initials",
+  variant = AVATAR_VARIANTS.INITIALS,
   seed,
 }: GenerateAvatarUriProps) => {
-  let style: typeof initials | typeof bottts | typeof avataaars = initials;
-  switch (variant) {
-    case AVATAR_VARIANTS.INTITIALS:
-      style = initials;
-      break;
-    case AVATAR_VARIANTS.BOTTTS:
-      style = bottts;
-      break;
-    case AVATAR_VARIANTS.AVATAAARS:
-      style = avataaars;
-      break;
+  if (variant === AVATAR_VARIANTS.INITIALS) {
+    return createAvatar(initials, {
+      seed,
+    });
   }
 
-  return createAvatar(style, {
+  if (variant === AVATAR_VARIANTS.BOTTTS) {
+    return createAvatar(bottts, {
+      seed,
+    });
+  }
+
+  if (variant === AVATAR_VARIANTS.AVATAAARS) {
+    return createAvatar(avataaars, {
+      seed,
+    });
+  }
+
+  return createAvatar(initials, {
     seed,
   });
 };
