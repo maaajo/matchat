@@ -1,6 +1,41 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { StatusCodes } from "http-status-codes";
+import { createAvatar } from "@dicebear/core";
+import { avataaars, bottts, initials } from "@dicebear/collection";
+
+export const AVATAR_VARIANTS = {
+  INTITIALS: "initials",
+  BOTTTS: "bottts",
+  AVATAAARS: "avataaars",
+} as const;
+
+type GenerateAvatarUriProps = {
+  variant: (typeof AVATAR_VARIANTS)[keyof typeof AVATAR_VARIANTS];
+  seed: string;
+};
+
+export const generateAvatarUri = ({
+  variant = "initials",
+  seed,
+}: GenerateAvatarUriProps) => {
+  let style: typeof initials | typeof bottts | typeof avataaars = initials;
+  switch (variant) {
+    case AVATAR_VARIANTS.INTITIALS:
+      style = initials;
+      break;
+    case AVATAR_VARIANTS.BOTTTS:
+      style = bottts;
+      break;
+    case AVATAR_VARIANTS.AVATAAARS:
+      style = avataaars;
+      break;
+  }
+
+  return createAvatar(style, {
+    seed,
+  });
+};
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
