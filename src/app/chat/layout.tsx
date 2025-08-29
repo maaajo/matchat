@@ -6,7 +6,7 @@ type ChatLayoutProps = Readonly<{
 
 export default function ChatLayout({ children }: ChatLayoutProps) {
   return (
-    <main className="container mx-auto flex min-h-dvh flex-col items-center px-4 shadow-2xl">
+    <main className="container mx-auto flex min-h-dvh w-full max-w-5xl flex-col items-center px-4 shadow-2xl">
       {children}
     </main>
   );

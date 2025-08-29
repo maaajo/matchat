@@ -20,8 +20,15 @@ import {
 } from "@/modules/chat/schemas/chat-schema";
 
 import { Card } from "@/components/ui/card";
+import { ChatContainer } from "@/modules/chat/ui/components/chat-container";
+import { useState } from "react";
+import {
+  ChatMessage,
+  MESSAGE_VARIANTS,
+} from "@/modules/chat/ui/components/chat-message";
 
 export const ChatView = () => {
+  const [messages, setMessages] = useState<string[]>([]);
   const form = useForm<ChatMessageFormData>({
     resolver: zodResolver(chatMessageSchema),
     defaultValues: {
@@ -34,21 +41,32 @@ export const ChatView = () => {
   const onSubmit = (data: ChatMessageFormData) => {
     console.log("Message submitted:", data.message);
     // TODO: Implement message sending logic
+    setMessages(oldValue => [...oldValue, data.message]);
     form.reset();
   };
 
   return (
     <>
-      <section className="flex flex-1 flex-col items-center justify-center">
-        <h4 className="max-w-md text-center text-xl font-bold">
-          Ready to chat? Let&apos;s explore together!
-        </h4>
-        <p className="text-muted-foreground mt-4 text-center text-sm">
-          Just start typing your message in the box below and let&apos;s get
-          this conversation going! 🚀
-        </p>
-      </section>
-      <section className="w-full max-w-5xl">
+      <ChatContainer className="w-full px-4 py-4">
+        {messages.length === 0 ? (
+          <>
+            <h4 className="max-w-md text-center text-xl font-bold">
+              Ready to chat? Let&apos;s explore together!
+            </h4>
+            <p className="text-muted-foreground mt-4 text-center text-sm">
+              Just start typing your message in the box below and let&apos;s get
+              this conversation going! 🚀
+            </p>
+          </>
+        ) : (
+          messages.map(message => (
+            <ChatMessage key={message} variant={MESSAGE_VARIANTS.USER}>
+              {message}
+            </ChatMessage>
+          ))
+        )}
+      </ChatContainer>
+      <section className="w-full">
         <div className="px-4 py-4">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
