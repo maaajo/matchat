@@ -9,7 +9,9 @@
     "lint": "next lint",
     "db:studio": "npx drizzle-kit studio",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:watch:ui": "vitest -c vitest.config.react.ts --watch",
+    "test:ui": "vitest -c vitest.config.react.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -77,13 +79,18 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/pg": "^8.15.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^5.0.2",
     "drizzle-kit": "^0.31.4",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
+    "jsdom": "^26.1.0",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "tailwindcss": "^4",
