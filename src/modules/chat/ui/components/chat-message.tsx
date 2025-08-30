@@ -39,8 +39,10 @@ const ChatMessage = ({
         {...props}
         className={cn(
           "flex w-full gap-x-2",
-          variant === MESSAGE_VARIANTS.USER ? "justify-end" : "justify-start",
-          variant === MESSAGE_VARIANTS.USER ? "flex-row" : "flex-row-reverse",
+          variant === MESSAGE_VARIANTS.USER
+            ? "flex-row justify-end"
+            : "flex-row-reverse justify-start",
+
           className,
         )}
       >
@@ -57,13 +59,18 @@ const ChatMessage = ({
             src={generateAvatar({
               seed:
                 variant === MESSAGE_VARIANTS.USER
-                  ? (userName ?? "")
+                  ? userName || ""
                   : "assistant",
               variant:
                 variant === MESSAGE_VARIANTS.USER
                   ? AVATAR_VARIANTS.INITIALS
                   : AVATAR_VARIANTS.BOTTTS,
             }).toDataUri()}
+            alt={
+              variant === MESSAGE_VARIANTS.USER
+                ? `Avatar for ${userName || "user"}`
+                : "Assistant avatar"
+            }
           />
         </Avatar>
       </div>
