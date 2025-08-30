@@ -163,7 +163,7 @@ export function DotsLoader({
   return (
     <div
       className={cn(
-        "flex items-center space-x-1",
+        "flex items-center gap-x-3",
         containerSizes[size],
         className,
       )}
@@ -172,7 +172,7 @@ export function DotsLoader({
         <div
           key={i}
           className={cn(
-            "bg-primary animate-[bounce-dots_1.4s_ease-in-out_infinite] rounded-full",
+            "bg-muted-foreground animate-[bounce-dots_1.4s_ease-in-out_infinite] rounded-full",
             dotSizes[size],
           )}
           style={{

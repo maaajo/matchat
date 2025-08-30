@@ -1,7 +1,7 @@
 "use client";
 
 import { AVATAR_VARIANTS, cn, generateAvatar } from "@/lib/utils";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import {
   ComponentProps,
@@ -103,7 +103,9 @@ const ChatMessageContent = ({
         className,
       )}
     >
-      <p className="text-sm leading-relaxed whitespace-pre-wrap">{children}</p>
+      <div className="text-sm leading-relaxed whitespace-pre-wrap">
+        {children}
+      </div>
     </Card>
   );
 };

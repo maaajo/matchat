@@ -29,6 +29,7 @@ import {
 } from "@/modules/chat/ui/components/chat-message";
 import { useWatch } from "react-hook-form";
 import { cn } from "@/lib/utils";
+import { Loader } from "@/components/ui/loader";
 
 type ChatViewProps = {
   userName?: string;
@@ -37,16 +38,27 @@ type ChatViewProps = {
 type ChatMessage = {
   variant: (typeof MESSAGE_VARIANTS)[keyof typeof MESSAGE_VARIANTS];
   content: string;
+  isLoading: boolean;
 };
 
 const testMessages: ChatMessage[] = [
   {
     variant: MESSAGE_VARIANTS.ASSISTANT,
     content: "Hello, what can I help you with?",
+    isLoading: false,
   },
-  { variant: MESSAGE_VARIANTS.USER, content: "Tell me a dad joke" },
-  { variant: MESSAGE_VARIANTS.ASSISTANT, content: "Here is a dad joke" },
-  { variant: MESSAGE_VARIANTS.USER, content: "Tell me more" },
+  {
+    variant: MESSAGE_VARIANTS.USER,
+    content: "Tell me a dad joke",
+    isLoading: false,
+  },
+  {
+    variant: MESSAGE_VARIANTS.ASSISTANT,
+    content: "Here is a dad joke",
+    isLoading: false,
+  },
+  { variant: MESSAGE_VARIANTS.USER, content: "Tell me more", isLoading: false },
+  { variant: MESSAGE_VARIANTS.ASSISTANT, content: "Test", isLoading: true },
 ];
 
 export const ChatView = ({ userName }: ChatViewProps) => {
@@ -74,7 +86,11 @@ export const ChatView = ({ userName }: ChatViewProps) => {
     // TODO: Implement message sending logic
     setMessages(oldValue => [
       ...oldValue,
-      { variant: MESSAGE_VARIANTS.USER, content: data.message },
+      {
+        variant: MESSAGE_VARIANTS.USER,
+        content: data.message,
+        isLoading: false,
+      },
     ]);
     form.reset();
   };
@@ -109,9 +125,17 @@ export const ChatView = ({ userName }: ChatViewProps) => {
             </>
           )
         ) : (
-          messages.map(({ content, variant }) => (
+          messages.map(({ content, variant, isLoading }) => (
             <ChatMessage key={content} variant={variant} userName={userName}>
-              <ChatMessageContent>{content}</ChatMessageContent>
+              <ChatMessageContent>
+                {isLoading ? (
+                  <div className="flex items-center gap-x-2">
+                    <Loader variant="dots" size="lg" />
+                  </div>
+                ) : (
+                  <p>{content}</p>
+                )}
+              </ChatMessageContent>
             </ChatMessage>
           ))
         )}
