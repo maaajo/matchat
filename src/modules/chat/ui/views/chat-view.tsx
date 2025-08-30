@@ -30,8 +30,27 @@ import {
 import { useWatch } from "react-hook-form";
 import { cn } from "@/lib/utils";
 
-export const ChatView = () => {
-  const [messages, setMessages] = useState<string[]>([]);
+type ChatViewProps = {
+  userName?: string;
+};
+
+type ChatMessage = {
+  variant: (typeof MESSAGE_VARIANTS)[keyof typeof MESSAGE_VARIANTS];
+  content: string;
+};
+
+const testMessages: ChatMessage[] = [
+  {
+    variant: MESSAGE_VARIANTS.ASSISTANT,
+    content: "Hello, what can I help you with?",
+  },
+  { variant: MESSAGE_VARIANTS.USER, content: "Tell me a dad joke" },
+  { variant: MESSAGE_VARIANTS.ASSISTANT, content: "Here is a dad joke" },
+  { variant: MESSAGE_VARIANTS.USER, content: "Tell me more" },
+];
+
+export const ChatView = ({ userName }: ChatViewProps) => {
+  const [messages, setMessages] = useState<ChatMessage[]>(testMessages);
   const form = useForm<ChatMessageFormData>({
     resolver: zodResolver(chatMessageSchema),
     defaultValues: {
@@ -53,7 +72,10 @@ export const ChatView = () => {
   const onSubmit = (data: ChatMessageFormData) => {
     console.log("Message submitted:", data.message);
     // TODO: Implement message sending logic
-    setMessages(oldValue => [...oldValue, data.message]);
+    setMessages(oldValue => [
+      ...oldValue,
+      { variant: MESSAGE_VARIANTS.USER, content: data.message },
+    ]);
     form.reset();
   };
 
@@ -87,9 +109,9 @@ export const ChatView = () => {
             </>
           )
         ) : (
-          messages.map(message => (
-            <ChatMessage key={message} variant={MESSAGE_VARIANTS.USER}>
-              <ChatMessageContent>{message}</ChatMessageContent>
+          messages.map(({ content, variant }) => (
+            <ChatMessage key={content} variant={variant} userName={userName}>
+              <ChatMessageContent>{content}</ChatMessageContent>
             </ChatMessage>
           ))
         )}

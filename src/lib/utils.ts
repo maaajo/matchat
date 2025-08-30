@@ -15,7 +15,7 @@ type GenerateAvatarUriProps = {
   seed: string;
 };
 
-export const generateAvatarUri = ({
+export const generateAvatar = ({
   variant = AVATAR_VARIANTS.INITIALS,
   seed,
 }: GenerateAvatarUriProps) => {
