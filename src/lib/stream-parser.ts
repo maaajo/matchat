@@ -1,5 +1,8 @@
 type SSEFrame = {
-  rawText: string;
+  id?: string;
+  retry?: number;
+  event?: string;
+  data: string;
 };
 
 export class SSEParser {

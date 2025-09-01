@@ -36,9 +36,10 @@
   - `Content-Type: text/event-stream`
   - `Cache-Control: no-store, no-transform`
   - `Connection: keep-alive`
-- **Body**: Server-Sent Events stream directly passthrough from the OpenAI
-  Responses API (no custom re-wrapping). The stream ends when OpenAI finishes or
-  the client aborts.
+- **Body**: NDJSON stream (newline-delimited JSON) directly passthrough from the
+  OpenAI Responses API (no custom re-wrapping). Despite the `text/event-stream`
+  header, the actual format is NDJSON - each line is a complete JSON object. The
+  stream ends when OpenAI finishes or the client aborts.
 
 ### Error Responses (JSON)
 

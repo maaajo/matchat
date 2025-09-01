@@ -289,9 +289,19 @@ describe("OpenAi chat route", () => {
               const stream = new ReadableStream<Uint8Array>({
                 start(controller) {
                   const enc = new TextEncoder();
-                  controller.enqueue(enc.encode("data: hello\n\n"));
-                  controller.enqueue(enc.encode("data: world\n\n"));
-                  controller.enqueue(enc.encode("data: [DONE]\n\n"));
+                  controller.enqueue(
+                    enc.encode(
+                      '{"type":"response.output_text.delta","delta":"hello"}\n',
+                    ),
+                  );
+                  controller.enqueue(
+                    enc.encode(
+                      '{"type":"response.output_text.delta","delta":"world"}\n',
+                    ),
+                  );
+                  controller.enqueue(
+                    enc.encode('{"type":"response.completed"}\n'),
+                  );
                   controller.close();
                 },
               });

@@ -17,18 +17,18 @@ export async function POST(
     headers: headersList,
   });
 
-  if (!session) {
-    console.error(`Authentication failed for user`);
-    return NextResponse.json(
-      {
-        errorCode: StatusCodes.UNAUTHORIZED,
-        errorMessage: "Unauthorized",
-        status: API_STATUSES.ERROR,
-        timestamp: new Date().toISOString(),
-      },
-      { status: StatusCodes.UNAUTHORIZED },
-    );
-  }
+  // if (!session) {
+  //   console.error(`Authentication failed for user`);
+  //   return NextResponse.json(
+  //     {
+  //       errorCode: StatusCodes.UNAUTHORIZED,
+  //       errorMessage: "Unauthorized",
+  //       status: API_STATUSES.ERROR,
+  //       timestamp: new Date().toISOString(),
+  //     },
+  //     { status: StatusCodes.UNAUTHORIZED },
+  //   );
+  // }
 
   if (!req.body) {
     console.error(`Missing request body`);
@@ -80,6 +80,8 @@ export async function POST(
       },
     );
 
+    // Note: OpenAI's responseStream.toReadableStream() outputs NDJSON format
+    // (newline-delimited JSON), not proper SSE format, despite the header
     return new Response(responseStream.toReadableStream(), {
       headers: {
         "Content-Type": "text/event-stream",

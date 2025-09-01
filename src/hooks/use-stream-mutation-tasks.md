@@ -11,17 +11,18 @@
 
 - 3. [ ] Add Stream parser utility
   - 3.1. [x] Create `src/lib/stream-parser.ts`
-  - 3.2. [ ] Parse text/event-stream frames to match `route.ts` Response
-    - 3.2.1. [x] Accumulate decoded text in a buffer; split frames on blank line
-      delimiters (`\n\n` or `\r\n\r\n`)
-    - 3.2.2. [ ] For each frame, process lines (`split` by `\n` or `\r\n`):
-      - 3.2.2.1. [ ] Ignore keep-alive/comment lines starting with `:`
-      - 3.2.2.2. [ ] Capture optional `id:` and `retry:` (ignore functionally)
-      - 3.2.2.3. [ ] Capture optional `event:` name (e.g. `response.text.delta`)
-      - 3.2.2.4. [ ] Collect one or more `data:` lines; join with `\n` into a
-        JSON string
-    - 3.2.3. [ ] If the last chunk ends mid-frame, retain tail in buffer for
-      next read
+  - 3.2. [ ] Parse NDJSON stream to match `route.ts` Response (OpenAI outputs
+    NDJSON, not SSE)
+    - 3.2.1. [x] Accumulate decoded text in a buffer; split frames on newline
+      delimiters (`\n` or `\r\n`)
+    - 3.2.2. [ ] For each line, parse as JSON:
+      - 3.2.2.1. [ ] Skip empty lines
+      - 3.2.2.2. [ ] Parse each line as JSON object directly
+      - 3.2.2.3. [ ] Extract `type` field as event type (e.g.
+        `response.output_text.delta`)
+      - 3.2.2.4. [ ] Use entire JSON object as event data
+    - 3.2.3. [ ] If the last chunk ends mid-line, retain tail in buffer for next
+      read
   - 3.3. [ ] Use OpenAI Responses API event types for strong typing
     - 3.3.1. [ ] Import types (type-only): `ResponseStreamEvent`,
       `ResponseTextDeltaEvent`, `ResponseTextDoneEvent`
@@ -51,11 +52,9 @@
       finish the stream and prevent further deltas from mutating state
     - 3.4.8. [ ] Ignore unrelated/non-text events (reasoning, tool_calls, etc.)
   - 3.5. [ ] Expose parser API
-    - 3.5.1. [ ] `parseSSE(reader, onEvent)` that calls
-      `onEvent(event: ResponseStreamEvent,     sseEventName?: string)` per
-      parsed frame
-    - 3.5.2. [ ] When `event:` header is missing, derive the logical name from
-      `event.type` in the JSON payload
+    - 3.5.1. [ ] `parseNDJSON(reader, onEvent)` that calls
+      `onEvent(event: ResponseStreamEvent)` per parsed JSON line
+    - 3.5.2. [ ] Extract event type from `event.type` field in JSON payload
     - 3.5.3. [ ] Optional type guards: `isTextDelta(e)`, `isTextDone(e)`
   - 3.6. [ ] Robustness
     - 3.6.1. [ ] Wrap `JSON.parse` per frame; surface parse errors to caller
@@ -77,7 +76,7 @@
     - 4.6.4. [ ] `.signal(controller.signal)`
     - 4.6.5. [ ] `.res(async (res) => { /* stream parse */ })`
   - 4.7. [ ] Read `res.body.getReader()` + `TextDecoder('utf-8')`
-  - 4.8. [ ] Pipe chunks to SSE parser and update state on deltas/done
+  - 4.8. [ ] Pipe chunks to NDJSON parser and update state on deltas/done
   - 4.9. [ ] Resolve on done/end; cleanup reader/controller
   - 4.10. [ ] Non-2xx: parse server JSON to `ApiErrorResponse` if possible; set
     `error`
@@ -91,12 +90,12 @@
   - 6.2. [ ] Stop streaming loop and set `isStreaming` false on abort
 
 - 7. [ ] Edge cases
-  - 7.1. [ ] Malformed SSE frame → stop stream, set `error`
+  - 7.1. [ ] Malformed JSON line → stop stream, set `error`
   - 7.2. [ ] Stream ends without explicit done → set `finalText = streamedText`
   - 7.3. [ ] Ignore tool-call events (text-only scope)
 
 - 8. [ ] Tests (Vitest)
-  - 8.1. [ ] `sse-parser` unit tests: chunk boundaries, multi-line data,
+  - 8.1. [ ] `ndjson-parser` unit tests: chunk boundaries, partial lines,
     delta→done, ignore unrelated
   - 8.2. [ ] Hook tests: mock wretch `.res()` with a `ReadableStream`
     - 8.2.1. [ ] Asserts: `streamedText` grows, `finalText` set, `isStreaming`
