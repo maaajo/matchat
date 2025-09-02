@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { Providers } from "@/app/providers";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -27,8 +28,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${dmSans.variable} ${jetBrainsMono.variable}`}>
       <body className={`bg-background antialiased`}>
-        {children}
-        <Toaster />
+        <Providers>
+          {children}
+          <Toaster />
+        </Providers>
       </body>
     </html>
   );
