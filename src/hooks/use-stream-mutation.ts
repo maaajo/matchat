@@ -17,7 +17,6 @@ import {
 export type ChatOpenAIClientInput = ChatInput;
 
 export function useStreamMutation() {
-  const [isStreaming, setIsStreaming] = useState(false);
   const [streamedText, setStreamedText] = useState("");
   const [finalText, setFinalText] = useState("");
   const [responseId, setResponseId] = useState<string>();
@@ -26,12 +25,11 @@ export function useStreamMutation() {
 
   const abort = () => {
     abortControllerRef.current?.abort();
-    setIsStreaming(false);
   };
 
   const mutation = useMutation({
     mutationFn: async (payload: ChatOpenAIClientInput) => {
-      setIsStreaming(true);
+      // Don't set isStreaming to true here - wait for first delta
       setStreamedText("");
       setFinalText("");
       setResponseId(undefined);
@@ -74,11 +72,9 @@ export function useStreamMutation() {
               setResponseId(event.response.id);
             } else if (isResponseCompleted(event)) {
               setFinalText(accumulatedText);
-              setIsStreaming(false);
             }
           });
         } catch (error) {
-          setIsStreaming(false);
           throw new Error(`Stream parsing failed: ${error}`);
         }
 
@@ -86,14 +82,13 @@ export function useStreamMutation() {
           setFinalText(accumulatedText);
         }
       } catch (error) {
-        setIsStreaming(false);
         throw error;
       } finally {
         abortControllerRef.current = null;
       }
     },
     onError: () => {
-      setIsStreaming(false);
+      // Error occurred, streamedText will be empty
     },
   });
 
@@ -101,7 +96,8 @@ export function useStreamMutation() {
     mutate: mutation.mutate,
     mutateAsync: mutation.mutateAsync,
     isPending: mutation.isPending,
-    isStreaming,
+    isStreaming: streamedText.length > 0,
+    isGeneratingText: mutation.isPending && streamedText.length === 0,
     streamedText,
     finalText,
     responseId,
