@@ -38,8 +38,9 @@
   - `Connection: keep-alive`
 - **Body**: NDJSON stream (newline-delimited JSON) directly passthrough from the
   OpenAI Responses API (no custom re-wrapping). Despite the `text/event-stream`
-  header, the actual format is NDJSON - each line is a complete JSON object. The
-  stream ends when OpenAI finishes or the client aborts.
+  header, the actual format is NDJSON - each line is ALWAYS a complete JSON
+  object (never partial lines spanning chunks). The stream ends when OpenAI
+  finishes or the client aborts.
 
 ### Error Responses (JSON)
 

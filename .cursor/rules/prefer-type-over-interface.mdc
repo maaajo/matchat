@@ -1,0 +1,55 @@
+---
+description:
+  Enforce the use of `type` aliases over `interface` declarations in TypeScript.
+globs: ["**/*.ts", "**/*.tsx"]
+alwaysApply: false
+---
+
+# Prefer `type` Over `interface` in TypeScript
+
+## Rule Statement
+
+Always use `type` aliases instead of `interface` declarations when defining
+types in TypeScript.
+
+## Explanation
+
+Using `type` aliases offers several advantages:
+
+- **Flexibility**: `type` can represent unions, intersections, and other complex
+  types that `interface` cannot.
+- **Consistency**: Favoring `type` over `interface` reduces cognitive overhead
+  and potential confusion in the codebase.
+- **Avoids Declaration Merging**: Unlike `interface`, `type` does not support
+  declaration merging, which can lead to unexpected behaviors.
+
+## Examples
+
+**Incorrect:**
+
+```typescript
+interface User {
+  id: number;
+  name: string;
+  role: "admin" | "user";
+}
+```
+
+**Correct:**
+
+```typescript
+type User = {
+  id: number;
+  name: string;
+  role: "admin" | "user";
+};
+```
+
+## Exceptions
+
+In scenarios where declaration merging is required, such as augmenting existing
+types from external libraries, using `interface` may be appropriate.
+
+## Enforcement
+
+This rule applies to all TypeScript files (`.ts` and `.tsx`) in the project.
