@@ -9,57 +9,29 @@
   - 2.3. [x] Include `previous_response_id?: string` and optional
     `model?: string`
 
-- 3. [ ] Add Stream parser utility
+- 3. [ ] Add simple NDJSON parser utility
   - 3.1. [x] Create `src/lib/stream-parser.ts`
-  - 3.2. [ ] Parse NDJSON stream to match `route.ts` Response (OpenAI outputs
-    NDJSON, not SSE)
-    - 3.2.1. [x] Accumulate decoded text in a buffer; split frames on newline
-      delimiters (`\n` or `\r\n`)
-    - 3.2.2. [ ] For each line, parse as JSON:
-      - 3.2.2.1. [ ] Skip empty lines
-      - 3.2.2.2. [ ] Parse each line as JSON object directly
-      - 3.2.2.3. [ ] Extract `type` field as event type (e.g.
-        `response.output_text.delta`)
-      - 3.2.2.4. [ ] Use entire JSON object as event data
-    - 3.2.3. [ ] If the last chunk ends mid-line, retain tail in buffer for next
-      read
-  - 3.3. [ ] Use OpenAI Responses API event types for strong typing
-    - 3.3.1. [ ] Import types (type-only): `ResponseStreamEvent`,
-      `ResponseTextDeltaEvent`, `ResponseTextDoneEvent`
-    - 3.3.2. [ ] Also handle output-text variants if present in SDK:
-      `ResponseOutputTextDeltaEvent`, `ResponseOutputTextDoneEvent`
-    - 3.3.3. [ ] Narrow parsed `unknown` payloads to these union types
-  - 3.4. [ ] Map events to text accumulation
-    - 3.4.1. [ ] Text delta (append): when `type === 'response.text.delta'`
-      append `(event as ResponseTextDeltaEvent).delta` (fallback to `.value` if
-      needed)
-    - 3.4.2. [ ] Output text delta (append): when
-      `type === 'response.output_text.delta'` append
-      `(event as ResponseOutputTextDeltaEvent).delta`
-    - 3.4.3. [ ] Text done (finalize): when `type === 'response.text.done'` mark
-      text complete (no additional text payload)
-    - 3.4.4. [ ] Output text done (finalize): when
-      `type === 'response.output_text.done'` set
-      `finalText = (event as ResponseOutputTextDoneEvent).text` if present,
-      otherwise finalize from accumulated buffer
-    - 3.4.5. [ ] Created/in-progress: on `response.created` /
-      `response.in_progress` capture and store `response.id` (as `responseId`)
-      when available
-    - 3.4.6. [ ] Content/item events: ignore `response.output_item.added/done`
-      and `response.content_part.added/done` (only process deltas/done for
-      `output_text`)
-    - 3.4.7. [ ] Terminal guard: on `response.completed` (or `response.done`),
-      finish the stream and prevent further deltas from mutating state
-    - 3.4.8. [ ] Ignore unrelated/non-text events (reasoning, tool_calls, etc.)
-  - 3.5. [ ] Expose parser API
-    - 3.5.1. [ ] `parseNDJSON(reader, onEvent)` that calls
-      `onEvent(event: ResponseStreamEvent)` per parsed JSON line
-    - 3.5.2. [ ] Extract event type from `event.type` field in JSON payload
-    - 3.5.3. [ ] Optional type guards: `isTextDelta(e)`, `isTextDone(e)`
-  - 3.6. [ ] Robustness
-    - 3.6.1. [ ] Wrap `JSON.parse` per frame; surface parse errors to caller
-    - 3.6.2. [ ] Handle CRLF vs LF newlines and multi-byte boundaries safely
-    - 3.6.3. [ ] Stop cleanly when reader returns `{ done: true }`
+  - 3.2. [ ] Simple NDJSON parsing (each chunk is a complete JSON object)
+    - 3.2.1. [ ] Split stream chunks by newlines, each line is complete JSON
+    - 3.2.2. [ ] Parse each line as JSON (no partial line handling needed)
+    - 3.2.3. [ ] Extract `type` field and handle different event types:
+      - `response.output_text.delta` → extract `delta` field
+      - `response.created` → extract `response.id` field
+      - `response.completed` → mark stream as done
+    - 3.2.4. [ ] Accumulate delta text and capture response.id from events
+  - 3.3. [ ] Use OpenAI SDK types for proper typing
+    - 3.3.1. [ ] Import Response API event types from
+      'openai/resources/responses'
+    - 3.3.2. [ ] Use `ResponseStreamEvent` as base type for all events
+    - 3.3.3. [ ] Use `ResponseOutputTextDeltaEvent` for delta text events
+    - 3.3.4. [ ] Use `ResponseCreatedEvent` for response creation events
+    - 3.3.5. [ ] Use `ResponseCompletedEvent` for response completion events
+  - 3.4. [ ] Expose typed parser API
+    - 3.4.1. [ ] `parseNDJSONStream(reader, onEvent)` function
+    - 3.4.2. [ ] Call `onEvent(event: ResponseStreamEvent)` for each parsed
+      event
+    - 3.4.3. [ ] Type guard helpers: `isOutputTextDelta(event)`,
+      `isResponseCreated(event)`, `isResponseCompleted(event)`
 
 - 4. [ ] Implement hook file
   - 4.1. [ ] Create `src/hooks/use-stream-mutation.ts`
@@ -70,13 +42,14 @@
   - 4.5. [ ] Create and store `AbortController` in a ref
   - 4.6. [ ] Start request via `wretch('/api/chat-openai')`
     - 4.6.1. [ ] Headers: `Content-Type: application/json`,
-      `Accept: text/event-stream`
+      `Accept: application/x-ndjson`
     - 4.6.2. [ ] `.post(payload)`
     - 4.6.3. [ ] `.options({ credentials: 'include' })`
     - 4.6.4. [ ] `.signal(controller.signal)`
     - 4.6.5. [ ] `.res(async (res) => { /* stream parse */ })`
   - 4.7. [ ] Read `res.body.getReader()` + `TextDecoder('utf-8')`
-  - 4.8. [ ] Pipe chunks to NDJSON parser and update state on deltas/done
+  - 4.8. [ ] Pipe chunks to NDJSON parser with typed event handling and update
+    state
   - 4.9. [ ] Resolve on done/end; cleanup reader/controller
   - 4.10. [ ] Non-2xx: parse server JSON to `ApiErrorResponse` if possible; set
     `error`
@@ -95,8 +68,8 @@
   - 7.3. [ ] Ignore tool-call events (text-only scope)
 
 - 8. [ ] Tests (Vitest)
-  - 8.1. [ ] `ndjson-parser` unit tests: chunk boundaries, partial lines,
-    delta→done, ignore unrelated
+  - 8.1. [ ] NDJSON parser unit tests: JSON parsing, event type extraction, type
+    guards
   - 8.2. [ ] Hook tests: mock wretch `.res()` with a `ReadableStream`
     - 8.2.1. [ ] Asserts: `streamedText` grows, `finalText` set, `isStreaming`
       toggles
