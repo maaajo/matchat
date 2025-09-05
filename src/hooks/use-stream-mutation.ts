@@ -1,7 +1,7 @@
 "use client";
 
 import type { ChatInput } from "@/app/api/chat-openai/schema";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import wretch from "wretch";
 import AbortAddon from "wretch/addons/abort";
@@ -15,20 +15,25 @@ import {
 // Includes: input (string | message array), previous_response_id?: string, model?: string
 export type ChatOpenAIClientInput = ChatInput;
 
-export function useStreamMutation() {
+export function useStreamMutation(options?: { key?: readonly unknown[] }) {
   const [streamedText, setStreamedText] = useState("");
   const lastResponseIdRef = useRef<string | undefined>(undefined);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => abortControllerRef.current?.abort();
+  }, []);
 
   const abort = () => {
     abortControllerRef.current?.abort();
   };
 
   const mutation = useMutation<
-    { responseId?: string; text: string },
+    { responseId?: string },
     Error,
     ChatOpenAIClientInput
   >({
+    mutationKey: ["chat-openai", ...(options?.key ?? [])],
     mutationFn: async (payload: ChatOpenAIClientInput) => {
       setStreamedText("");
       lastResponseIdRef.current = undefined;
@@ -37,6 +42,7 @@ export function useStreamMutation() {
 
       try {
         const response = await wretch("/api/chat-openai")
+          .options({ credentials: "same-origin" })
           .addon(AbortAddon())
           .signal(abortControllerRef.current)
           .post(payload)
@@ -52,7 +58,7 @@ export function useStreamMutation() {
         }
 
         if (!response.body) {
-          return { responseId: lastResponseIdRef.current, text: "" };
+          return { responseId: lastResponseIdRef.current };
         }
 
         const reader = response.body.getReader();
@@ -68,10 +74,13 @@ export function useStreamMutation() {
             }
           });
         } catch (error) {
-          throw new Error(`Stream parsing failed: ${error}`);
+          if (error instanceof DOMException && error.name === "AbortError") {
+            return { responseId: lastResponseIdRef.current };
+          }
+          throw error;
         }
 
-        return { responseId: lastResponseIdRef.current, text: accumulatedText };
+        return { responseId: lastResponseIdRef.current };
       } catch (error) {
         throw error;
       } finally {
