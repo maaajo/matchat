@@ -30,6 +30,8 @@ import {
 import { useWatch } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { Loader } from "@/components/ui/loader";
+import { useStreamMutation } from "@/hooks/use-stream-mutation";
+import { StreamMutationDebug } from "@/hooks/use-stream-mutation-debug";
 
 type ChatViewProps = {
   userName?: string;
@@ -62,7 +64,7 @@ const testMessages: ChatMessage[] = [
 ];
 
 export const ChatView = ({ userName }: ChatViewProps) => {
-  const [messages, setMessages] = useState<ChatMessage[]>(testMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const form = useForm<ChatMessageFormData>({
     resolver: zodResolver(chatMessageSchema),
     defaultValues: {
@@ -70,7 +72,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
     },
   });
 
-  const { isSubmitting } = form.formState;
+  const m = useStreamMutation();
   const userMessage = useWatch({
     control: form.control,
     name: "message",
@@ -79,11 +81,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
     },
   });
 
-  console.log(userMessage);
-
   const onSubmit = (data: ChatMessageFormData) => {
-    console.log("Message submitted:", data.message);
-    // TODO: Implement message sending logic
     setMessages(oldValue => [
       ...oldValue,
       {
@@ -92,6 +90,11 @@ export const ChatView = ({ userName }: ChatViewProps) => {
         isLoading: false,
       },
     ]);
+
+    m.mutate({
+      input: data.message,
+      previous_response_id: m.getLastResponseId(),
+    });
     form.reset();
   };
 
@@ -159,8 +162,8 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                         <div className="flex justify-end">
                           <Button
                             type="submit"
-                            isLoading={isSubmitting}
-                            disabled={isSubmitting}
+                            isLoading={m.isPending}
+                            disabled={m.isPending}
                           >
                             <SendIcon />
                             Ask
@@ -176,6 +179,9 @@ export const ChatView = ({ userName }: ChatViewProps) => {
           </Form>
         </div>
       </section>
+      <div className="px-4 pb-8">
+        <StreamMutationDebug m={m} />
+      </div>
     </>
   );
 };

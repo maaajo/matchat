@@ -149,3 +149,5 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
     getLastResponseId: () => lastResponseIdRef.current,
   };
 }
+
+export type UseStreamMutationReturn = ReturnType<typeof useStreamMutation>;
