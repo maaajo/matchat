@@ -25,13 +25,15 @@ import { useState } from "react";
 import {
   ChatMessage,
   ChatMessageContent,
+  ChatMessageName,
   MESSAGE_VARIANTS,
 } from "@/modules/chat/ui/components/chat-message";
 import { useWatch } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { Loader } from "@/components/ui/loader";
 import { useStreamMutation } from "@/hooks/use-stream-mutation";
-import { StreamMutationDebug } from "@/hooks/use-stream-mutation-debug";
+import { StreamMutationDebug } from "@/modules/chat/ui/components/chat-stream-debug";
+import { config } from "@/lib/config";
 
 type ChatViewProps = {
   userName?: string;
@@ -130,6 +132,11 @@ export const ChatView = ({ userName }: ChatViewProps) => {
         ) : (
           messages.map(({ content, variant, isLoading }) => (
             <ChatMessage key={content} variant={variant} userName={userName}>
+              <ChatMessageName>
+                {variant === MESSAGE_VARIANTS.ASSISTANT
+                  ? config.appName
+                  : userName || "User"}
+              </ChatMessageName>
               <ChatMessageContent>
                 {isLoading ? (
                   <div className="flex items-center gap-x-2">

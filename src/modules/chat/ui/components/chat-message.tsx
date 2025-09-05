@@ -1,9 +1,9 @@
 "use client";
 
 import { AVATAR_VARIANTS, cn, generateAvatar } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import {
+import React, {
   ComponentProps,
   createContext,
   HTMLAttributes,
@@ -17,6 +17,7 @@ const MESSAGE_VARIANTS = {
 
 type ChatMessageContextValue = {
   variant: (typeof MESSAGE_VARIANTS)[keyof typeof MESSAGE_VARIANTS];
+  userName?: string;
 };
 
 const ChatMessageContext = createContext<ChatMessageContextValue | null>(null);
@@ -34,45 +35,9 @@ const ChatMessage = ({
   ...props
 }: ChatMessageProps) => {
   return (
-    <ChatMessageContext.Provider value={{ variant }}>
-      <div
-        {...props}
-        className={cn(
-          "flex w-full gap-x-2",
-          variant === MESSAGE_VARIANTS.USER
-            ? "flex-row justify-end"
-            : "flex-row-reverse justify-start",
-
-          className,
-        )}
-      >
-        <div
-          className={cn(
-            "max-w-[80%] md:max-w-[70%]",
-            variant === MESSAGE_VARIANTS.USER ? "ml-auto" : "mr-auto",
-          )}
-        >
-          {children}
-        </div>
-        <Avatar className="mt-1">
-          <AvatarImage
-            src={generateAvatar({
-              seed:
-                variant === MESSAGE_VARIANTS.USER
-                  ? userName || ""
-                  : "assistant",
-              variant:
-                variant === MESSAGE_VARIANTS.USER
-                  ? AVATAR_VARIANTS.INITIALS
-                  : AVATAR_VARIANTS.BOTTTS,
-            }).toDataUri()}
-            alt={
-              variant === MESSAGE_VARIANTS.USER
-                ? `Avatar for ${userName || "user"}`
-                : "Assistant avatar"
-            }
-          />
-        </Avatar>
+    <ChatMessageContext.Provider value={{ variant, userName }}>
+      <div {...props} className={cn("flex w-full flex-col", className)}>
+        {children}
       </div>
     </ChatMessageContext.Provider>
   );
@@ -92,22 +57,82 @@ const ChatMessageContent = ({
     );
   }
 
-  const { variant } = context;
+  const { variant, userName } = context;
 
   return (
-    <Card
-      {...props}
+    <div
       className={cn(
-        "px-4 py-2 shadow-sm",
-        variant === MESSAGE_VARIANTS.USER ? "border-primary" : "border-muted",
-        className,
+        "flex w-full items-center gap-x-2",
+        variant === MESSAGE_VARIANTS.USER
+          ? "flex-row justify-end"
+          : "flex-row-reverse justify-start",
       )}
     >
-      <div className="text-sm leading-relaxed whitespace-pre-wrap">
-        {children}
-      </div>
-    </Card>
+      <Card
+        {...props}
+        className={cn(
+          "max-w-[80%] px-4 py-2 shadow-sm md:max-w-[70%]",
+          variant === MESSAGE_VARIANTS.USER
+            ? "border-primary ml-auto"
+            : "border-muted mr-auto",
+          className,
+        )}
+      >
+        <div className="text-sm leading-relaxed whitespace-pre-wrap">
+          {children}
+        </div>
+      </Card>
+      <Avatar className="flex-shrink-0">
+        <AvatarImage
+          src={generateAvatar({
+            seed:
+              variant === MESSAGE_VARIANTS.USER ? userName || "" : "assistant",
+            variant:
+              variant === MESSAGE_VARIANTS.USER
+                ? AVATAR_VARIANTS.INITIALS
+                : AVATAR_VARIANTS.BOTTTS,
+          }).toDataUri()}
+          alt={
+            variant === MESSAGE_VARIANTS.USER
+              ? `Avatar for ${userName || "user"}`
+              : "Assistant avatar"
+          }
+        />
+      </Avatar>
+    </div>
   );
 };
 
-export { MESSAGE_VARIANTS, ChatMessage, ChatMessageContent };
+export type ChatMessageNameProps = HTMLAttributes<HTMLDivElement> & {
+  children: React.ReactNode;
+};
+
+const ChatMessageName = ({
+  className,
+  children,
+  ...props
+}: ChatMessageNameProps) => {
+  const context = useContext(ChatMessageContext);
+  if (!context) {
+    throw new Error(
+      "ChatMessageName must be used within a ChatMessage component",
+    );
+  }
+
+  const { variant } = context;
+
+  return (
+    <div
+      {...props}
+      className={cn(
+        "text-muted-foreground mb-1 text-xs font-medium",
+        variant === MESSAGE_VARIANTS.USER ? "text-right" : "text-left",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+};
+
+export { MESSAGE_VARIANTS, ChatMessage, ChatMessageContent, ChatMessageName };

@@ -41,8 +41,7 @@ export function StreamMutationDebug({
   const errorMessage = m.error
     ? ((m.error as Error)?.message ?? String(m.error))
     : undefined;
-  const isStreaming = m.isPending && (m.text?.length ?? 0) > 0;
-  const isGeneratingText = isStreaming;
+  const isStreaming = m.isPending && m.text?.length > 0;
 
   return (
     <Card className="mt-4">
@@ -106,14 +105,6 @@ export function StreamMutationDebug({
                 </div>
                 <div className="font-mono">
                   <BooleanBadge value={isStreaming} />
-                </div>
-              </div>
-              <div className="rounded border p-2">
-                <div className="text-muted-foreground mb-1 text-[11px]">
-                  isGeneratingText (derived)
-                </div>
-                <div className="font-mono">
-                  <BooleanBadge value={isGeneratingText} />
                 </div>
               </div>
             </div>
