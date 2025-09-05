@@ -41,8 +41,7 @@
   - 4.2. [x] Export `useStreamMutation` (client hook)
   - 4.3. [x] Return API: `{ ...mutation, text, abort, getLastResponseId }`
     (derive flags/final text in consumer)
-  - 4.4. [x] Use `useMutation` for lifecycle and to return
-    `{ responseId?, text }` via `mutation.data`
+  - 4.4. [x] Use `useMutation` for lifecycle and return only `{ responseId? }`
   - 4.5. [x] Create and store `AbortController` in a ref
   - 4.6. [x] Start request via `wretch('/api/chat-openai')`
     - 4.6.1. [x] No explicit headers required; server streams NDJSON
@@ -70,15 +69,16 @@
 
 - 7. [x] Edge cases
   - 7.1. [x] Parse error → throw; surfaces via `mutation.error`
-  - 7.2. [x] Stream ends without explicit done → return accumulated `text`
+  - 7.2. [x] Stream ends without explicit done → keep accumulated `text` in
+    state
   - 7.3. [x] Ignore non-text/tool events; only handle text deltas and created
 
 - 8. [ ] Tests (Vitest)
   - 8.1. [ ] NDJSON parser unit tests: JSON parsing, event type extraction, type
     guards
   - 8.2. [ ] Hook tests: mock wretch `.res()` with a `ReadableStream`
-    - 8.2.1. [ ] Asserts: `text` grows while pending; upon success
-      `mutation.data.text` equals final text; `isPending` toggles correctly
+    - 8.2.1. [ ] Asserts: `text` grows while pending; upon success final text is
+      in hook state; `isPending` toggles correctly
     - 8.2.2. [ ] Error: non-2xx JSON error surfaces via `mutation.error`;
       malformed frame throws; network error
     - 8.2.3. [ ] Abort mid-stream: `abort()` stops updates; no further `text`
@@ -86,18 +86,18 @@
     - 8.2.4. [ ] `responseId` captured: `mutation.data.responseId` (and
       `getLastResponseId()`) reflects created event
 
-- 9. [ ] Docs
-  - 9.1. [ ] JSDoc for `useStreamMutation`
-  - 9.2. [ ] Usage snippet: returns
+- 9. [x] Docs
+  - 9.1. [x] JSDoc for `useStreamMutation`
+  - 9.2. [x] Usage snippet: returns
     `{ ...mutation, text, abort, getLastResponseId }`; derive
     `isStreaming`/`isGeneratingText` from `mutation.isPending` and
-    `text.length`; final text from `mutation.data?.text`
-  - 9.3. [ ] Continuation example: pass
+    `text.length`; final text is from `text` state
+  - 9.3. [x] Continuation example: pass
     `previous_response_id: mutation.data?.responseId` or `getLastResponseId()`
 
 - 10. [ ] Acceptance
   - 10.1. [ ] Streaming visible via `text` with no debounce
-  - 10.2. [ ] On success, `mutation.data.text` holds the final text
+  - 10.2. [ ] On success, final text is available via `text` state
   - 10.3. [ ] `previous_response_id` supported in payload; `responseId`
     available via `mutation.data.responseId`
   - 10.4. [ ] Same-origin cookies respected if enabled; no token usage surfaced
