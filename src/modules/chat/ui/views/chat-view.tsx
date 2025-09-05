@@ -34,39 +34,28 @@ import { Loader } from "@/components/ui/loader";
 import { useStreamMutation } from "@/hooks/use-stream-mutation";
 import { StreamMutationDebug } from "@/modules/chat/ui/components/chat-stream-debug";
 import { config } from "@/lib/config";
+import { nanoid } from "nanoid";
 
 type ChatViewProps = {
   userName?: string;
 };
 
 type ChatMessage = {
+  id: string;
   variant: (typeof MESSAGE_VARIANTS)[keyof typeof MESSAGE_VARIANTS];
   content: string;
-  isLoading: boolean;
+  isLoading?: boolean;
+  responseId?: string;
+  error?: boolean;
+  errorMessage?: string;
 };
-
-const testMessages: ChatMessage[] = [
-  {
-    variant: MESSAGE_VARIANTS.ASSISTANT,
-    content: "Hello, what can I help you with?",
-    isLoading: false,
-  },
-  {
-    variant: MESSAGE_VARIANTS.USER,
-    content: "Tell me a dad joke",
-    isLoading: false,
-  },
-  {
-    variant: MESSAGE_VARIANTS.ASSISTANT,
-    content: "Here is a dad joke",
-    isLoading: false,
-  },
-  { variant: MESSAGE_VARIANTS.USER, content: "Tell me more", isLoading: false },
-  { variant: MESSAGE_VARIANTS.ASSISTANT, content: "Test", isLoading: true },
-];
 
 export const ChatView = ({ userName }: ChatViewProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [pendingAssistantId, setPendingAssistantId] = useState<string | null>(
+    null,
+  );
+
   const form = useForm<ChatMessageFormData>({
     resolver: zodResolver(chatMessageSchema),
     defaultValues: {
@@ -74,7 +63,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
     },
   });
 
-  const m = useStreamMutation();
+  const chat = useStreamMutation();
   const userMessage = useWatch({
     control: form.control,
     name: "message",
@@ -84,19 +73,55 @@ export const ChatView = ({ userName }: ChatViewProps) => {
   });
 
   const onSubmit = (data: ChatMessageFormData) => {
-    setMessages(oldValue => [
-      ...oldValue,
+    const userId = nanoid();
+    const assistantId = nanoid();
+
+    setMessages(prev => [
+      ...prev,
       {
+        id: userId,
         variant: MESSAGE_VARIANTS.USER,
         content: data.message,
         isLoading: false,
       },
+      {
+        id: assistantId,
+        variant: MESSAGE_VARIANTS.ASSISTANT,
+        content: "",
+        isLoading: true,
+      },
     ]);
 
-    m.mutate({
-      input: data.message,
-      previous_response_id: m.getLastResponseId(),
-    });
+    setPendingAssistantId(assistantId);
+
+    chat.mutate(
+      {
+        input: data.message,
+        previous_response_id: chat.getLastResponseId(),
+      },
+      {
+        onError: () => {},
+        onSettled: (dataResult, error) => {
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === assistantId
+                ? {
+                    ...msg,
+                    content: chat.text,
+                    isLoading: false,
+                    error: !!error,
+                    errorMessage: error?.message,
+                    responseId:
+                      dataResult?.responseId ?? chat.getLastResponseId(),
+                  }
+                : msg,
+            ),
+          );
+          setPendingAssistantId(null);
+        },
+      },
+    );
+
     form.reset();
   };
 
@@ -130,24 +155,43 @@ export const ChatView = ({ userName }: ChatViewProps) => {
             </>
           )
         ) : (
-          messages.map(({ content, variant, isLoading }) => (
-            <ChatMessage key={content} variant={variant} userName={userName}>
-              <ChatMessageName>
-                {variant === MESSAGE_VARIANTS.ASSISTANT
-                  ? config.appName
-                  : userName || "User"}
-              </ChatMessageName>
-              <ChatMessageContent>
-                {isLoading ? (
-                  <div className="flex items-center gap-x-2">
-                    <Loader variant="dots" size="lg" />
-                  </div>
-                ) : (
-                  <p>{content}</p>
-                )}
-              </ChatMessageContent>
-            </ChatMessage>
-          ))
+          messages.map(msg => {
+            const isStreaming = msg.id === pendingAssistantId;
+            const content = isStreaming ? chat.text : msg.content;
+            const loading = isStreaming
+              ? chat.isPending && chat.text.length === 0
+              : false;
+
+            return (
+              <ChatMessage
+                key={msg.id}
+                variant={msg.variant}
+                userName={userName}
+              >
+                <ChatMessageName>
+                  {msg.variant === MESSAGE_VARIANTS.USER
+                    ? userName || "User"
+                    : config.appName}
+                </ChatMessageName>
+                <ChatMessageContent>
+                  {loading ? (
+                    <div className="flex items-center gap-x-2">
+                      <Loader variant="dots" size="lg" />
+                    </div>
+                  ) : (
+                    <>
+                      <p>{content}</p>
+                      {msg.error ? (
+                        <div className="text-destructive mt-2 text-xs">
+                          {msg.errorMessage || "Something went wrong"}
+                        </div>
+                      ) : null}
+                    </>
+                  )}
+                </ChatMessageContent>
+              </ChatMessage>
+            );
+          })
         )}
       </ChatContainer>
       <section className="w-full">
@@ -169,8 +213,8 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                         <div className="flex justify-end">
                           <Button
                             type="submit"
-                            isLoading={m.isPending}
-                            disabled={m.isPending}
+                            isLoading={chat.isPending}
+                            disabled={chat.isPending}
                           >
                             <SendIcon />
                             Ask
@@ -187,7 +231,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
         </div>
       </section>
       <div className="px-4 pb-8">
-        <StreamMutationDebug m={m} />
+        <StreamMutationDebug m={chat} />
       </div>
     </>
   );
