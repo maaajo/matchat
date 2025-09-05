@@ -1,0 +1,95 @@
+---
+description:
+  Prefer deriving types, values, and config from sources of truth instead of
+  duplicating or hard-coding them.
+globs: ["**/*.ts", "**/*.tsx"]
+alwaysApply: false
+---
+
+# Prefer Derivation Over Manual Specification
+
+## Rule Statement
+
+Always derive as much as possible from an existing source of truth rather than
+manually specifying values, types, literals, unions, or configuration.
+
+## Explanation
+
+Derivation improves code quality and maintainability:
+
+- **Single source of truth**: Avoids duplication and drift between runtime and
+  types.
+- **Fewer bugs**: Types and values stay in sync automatically.
+- **Safer refactors**: Change the source; consumers update via inference.
+- **Stronger type safety**: Lets the compiler prove correctness.
+
+## Guidelines
+
+- Derive types using `typeof`, `keyof`, `ReturnType`, `Parameters`,
+  `InstanceType`, generic inference, and `z.infer` (or equivalents).
+- Use `as const` for literal objects/arrays to preserve precise string/number
+  literals; use `satisfies` to check shapes without widening.
+- Build unions from data: `type T = typeof values[number]` or
+  `keyof typeof obj`.
+- Derive API request/response types from schemas or generated clients.
+- Prefer deriving config and constants from schemas or canonical objects.
+
+## Examples
+
+**Incorrect:** Duplicating the type separate from the schema
+
+```typescript
+import { z } from "zod";
+
+type User = { id: string; name: string };
+export const userSchema = z.object({ id: z.string(), name: z.string() });
+```
+
+**Correct:** Derive the type from the schema
+
+```typescript
+import { z } from "zod";
+
+export const userSchema = z.object({ id: z.string(), name: z.string() });
+export type User = z.infer<typeof userSchema>;
+```
+
+**Incorrect:** Manually writing a string union and separate list
+
+```typescript
+type Theme = "light" | "dark" | "system";
+export const THEMES = ["light", "dark", "system"];
+```
+
+**Correct:** Derive the union from the data
+
+```typescript
+export const THEMES = ["light", "dark", "system"] as const;
+export type Theme = (typeof THEMES)[number];
+```
+
+**Incorrect:** Widening away literal keys/values
+
+```typescript
+const routes: Record<string, string> = { home: "/", chat: "/chat" };
+type RouteName = string; // loses precision
+```
+
+**Correct:** Keep literals precise and derive names
+
+```typescript
+const routes = { home: "/", chat: "/chat" } satisfies Record<string, string>;
+type RouteName = keyof typeof routes; // "home" | "chat"
+```
+
+## Exceptions
+
+- External contracts requiring explicit, hand-written types or docs.
+- Cases where derivation significantly harms readability or performance.
+- When the source of truth is dynamic at runtime and cannot be typed safely.
+
+## Enforcement
+
+This rule applies to all TypeScript files (`.ts` and `.tsx`). Prefer derived
+types/values in code reviews and avoid duplicated constants, unions, and type
+annotations when they can be inferred or generated from a canonical source.
