@@ -36,57 +36,69 @@
     - 3.4.3. [x] Type guard helpers: `isOutputTextDelta(event)`,
       `isResponseCreated(event)`, `isResponseCompleted(event)`
 
-- 4. [ ] Implement hook file
-  - 4.1. [ ] Create `src/hooks/use-stream-mutation.ts`
-  - 4.2. [ ] Export `useStreamMutation` (client hook)
-  - 4.3. [ ] Return API:
-    `{ mutate, mutateAsync, isPending, isStreaming, streamedText, finalText, responseId?, previousResponseId?, error, abort }`
-  - 4.4. [ ] Use `useMutation` for lifecycle
-  - 4.5. [ ] Create and store `AbortController` in a ref
-  - 4.6. [ ] Start request via `wretch('/api/chat-openai')`
-    - 4.6.1. [ ] Headers: `Content-Type: application/json`,
-      `Accept: application/x-ndjson`
-    - 4.6.2. [ ] `.post(payload)`
-    - 4.6.3. [ ] `.options({ credentials: 'include' })`
-    - 4.6.4. [ ] `.signal(controller.signal)`
-    - 4.6.5. [ ] `.res(async (res) => { /* stream parse */ })`
-  - 4.7. [ ] Read `res.body.getReader()` + `TextDecoder('utf-8')`
-  - 4.8. [ ] Pipe chunks to NDJSON parser with typed event handling and update
-    state
-  - 4.9. [ ] Resolve on done/end; cleanup reader/controller
-  - 4.10. [ ] Non-2xx: parse server JSON to `ApiErrorResponse` if possible; set
-    `error`
+- 4. [x] Implement hook file
+  - 4.1. [x] Create `src/hooks/use-stream-mutation.ts`
+  - 4.2. [x] Export `useStreamMutation` (client hook)
+  - 4.3. [x] Return API: `{ ...mutation, text, abort, getLastResponseId }`
+    (derive flags/final text in consumer)
+  - 4.4. [x] Use `useMutation` for lifecycle and to return
+    `{ responseId?, text }` via `mutation.data`
+  - 4.5. [x] Create and store `AbortController` in a ref
+  - 4.6. [x] Start request via `wretch('/api/chat-openai')`
+    - 4.6.1. [x] No explicit headers required; server streams NDJSON
+    - 4.6.2. [x] `.post(payload)`
+    - 4.6.3. [ ] Optional: `.options({ credentials: 'include' })` if cookies
+      needed
+    - 4.6.4. [x] `.signal(controller.signal)`
+    - 4.6.5. [x] `.res()` then parse `response.body` with NDJSON parser
+  - 4.7. [x] Read `response.body.getReader()` and feed into `parseNDJSONStream`
+  - 4.8. [x] Handle `response.output_text.delta` and `response.created`;
+    accumulate and update `text`
+  - 4.9. [x] Resolve with `{ responseId, text }`; cleanup controller
+  - 4.10. [x] Non-2xx: attempt `response.json()` to extract message; throw
+    `Error(message)`
 
-- 5. [ ] Support `previous_response_id`
-  - 5.1. [ ] Forward in payload
-  - 5.2. [ ] Reflect into `previousResponseId` state
+- 5. [x] Support `previous_response_id`
+  - 5.1. [x] Forward in payload
+  - 5.2. [x] Do not mirror in state; expose `getLastResponseId()` for
+    continuation
 
-- 6. [ ] Abort handling
-  - 6.1. [ ] Implement `abort()` that cancels the inflight request
-  - 6.2. [ ] Stop streaming loop and set `isStreaming` false on abort
+- 6. [x] Abort handling
+  - 6.1. [x] Implement `abort()` that cancels the inflight request
+  - 6.2. [x] Abort stops fetch/stream; `isStreaming` derived in UI from
+    `mutation.isPending && text.length > 0`
 
-- 7. [ ] Edge cases
-  - 7.1. [ ] Malformed JSON line → stop stream, set `error`
-  - 7.2. [ ] Stream ends without explicit done → set `finalText = streamedText`
-  - 7.3. [ ] Ignore tool-call events (text-only scope)
+- 7. [x] Edge cases
+  - 7.1. [x] Parse error → throw; surfaces via `mutation.error`
+  - 7.2. [x] Stream ends without explicit done → return accumulated `text`
+  - 7.3. [x] Ignore non-text/tool events; only handle text deltas and created
 
 - 8. [ ] Tests (Vitest)
   - 8.1. [ ] NDJSON parser unit tests: JSON parsing, event type extraction, type
     guards
   - 8.2. [ ] Hook tests: mock wretch `.res()` with a `ReadableStream`
-    - 8.2.1. [ ] Asserts: `streamedText` grows, `finalText` set, `isStreaming`
-      toggles
-    - 8.2.2. [ ] Error: non-2xx JSON error; malformed frame; network error
-    - 8.2.3. [ ] Abort mid-stream behavior
+    - 8.2.1. [ ] Asserts: `text` grows while pending; upon success
+      `mutation.data.text` equals final text; `isPending` toggles correctly
+    - 8.2.2. [ ] Error: non-2xx JSON error surfaces via `mutation.error`;
+      malformed frame throws; network error
+    - 8.2.3. [ ] Abort mid-stream: `abort()` stops updates; no further `text`
+      changes after abort
+    - 8.2.4. [ ] `responseId` captured: `mutation.data.responseId` (and
+      `getLastResponseId()`) reflects created event
 
 - 9. [ ] Docs
   - 9.1. [ ] JSDoc for `useStreamMutation`
-  - 9.2. [ ] Usage snippet: payload (string or messages array), start streaming,
-    abort
+  - 9.2. [ ] Usage snippet: returns
+    `{ ...mutation, text, abort, getLastResponseId }`; derive
+    `isStreaming`/`isGeneratingText` from `mutation.isPending` and
+    `text.length`; final text from `mutation.data?.text`
+  - 9.3. [ ] Continuation example: pass
+    `previous_response_id: mutation.data?.responseId` or `getLastResponseId()`
 
 - 10. [ ] Acceptance
-  - 10.1. [ ] Streaming visible via `streamedText` with no debounce
-  - 10.2. [ ] `finalText` set on completion
-  - 10.3. [ ] `previous_response_id` supported
-  - 10.4. [ ] Same-origin cookies respected; no token usage surfaced
+  - 10.1. [ ] Streaming visible via `text` with no debounce
+  - 10.2. [ ] On success, `mutation.data.text` holds the final text
+  - 10.3. [ ] `previous_response_id` supported in payload; `responseId`
+    available via `mutation.data.responseId`
+  - 10.4. [ ] Same-origin cookies respected if enabled; no token usage surfaced
   - 10.5. [ ] No changes to `src/modules/chat/ui/views/chat-view.tsx`

@@ -7,7 +7,6 @@ import wretch from "wretch";
 import AbortAddon from "wretch/addons/abort";
 import {
   isOutputTextDelta,
-  isResponseCompleted,
   isResponseCreated,
   parseNDJSONStream,
 } from "@/lib/stream-parser";
@@ -18,27 +17,23 @@ export type ChatOpenAIClientInput = ChatInput;
 
 export function useStreamMutation() {
   const [streamedText, setStreamedText] = useState("");
-  const [finalText, setFinalText] = useState("");
-  const [responseId, setResponseId] = useState<string>();
-  const [previousResponseId, setPreviousResponseId] = useState<string>();
+  const lastResponseIdRef = useRef<string | undefined>(undefined);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const abort = () => {
     abortControllerRef.current?.abort();
   };
 
-  const mutation = useMutation({
+  const mutation = useMutation<
+    { responseId?: string; text: string },
+    Error,
+    ChatOpenAIClientInput
+  >({
     mutationFn: async (payload: ChatOpenAIClientInput) => {
-      // Don't set isStreaming to true here - wait for first delta
       setStreamedText("");
-      setFinalText("");
-      setResponseId(undefined);
+      lastResponseIdRef.current = undefined;
 
       abortControllerRef.current = new AbortController();
-
-      if (payload.previous_response_id) {
-        setPreviousResponseId(payload.previous_response_id);
-      }
 
       try {
         const response = await wretch("/api/chat-openai")
@@ -52,12 +47,12 @@ export function useStreamMutation() {
           try {
             const errorData = await response.json();
             errorMessage = errorData.message || errorMessage;
-          } catch (error) {}
+          } catch {}
           throw new Error(errorMessage);
         }
 
         if (!response.body) {
-          return;
+          return { responseId: lastResponseIdRef.current, text: "" };
         }
 
         const reader = response.body.getReader();
@@ -69,18 +64,14 @@ export function useStreamMutation() {
               accumulatedText += event.delta || "";
               setStreamedText(accumulatedText);
             } else if (isResponseCreated(event)) {
-              setResponseId(event.response.id);
-            } else if (isResponseCompleted(event)) {
-              setFinalText(accumulatedText);
+              lastResponseIdRef.current = event.response.id;
             }
           });
         } catch (error) {
           throw new Error(`Stream parsing failed: ${error}`);
         }
 
-        if (!finalText && accumulatedText) {
-          setFinalText(accumulatedText);
-        }
+        return { responseId: lastResponseIdRef.current, text: accumulatedText };
       } catch (error) {
         throw error;
       } finally {
@@ -93,16 +84,9 @@ export function useStreamMutation() {
   });
 
   return {
-    mutate: mutation.mutate,
-    mutateAsync: mutation.mutateAsync,
-    isPending: mutation.isPending,
-    isStreaming: streamedText.length > 0,
-    isGeneratingText: mutation.isPending && streamedText.length === 0,
-    streamedText,
-    finalText,
-    responseId,
-    previousResponseId,
-    error: mutation.error,
+    ...mutation,
+    text: streamedText,
     abort,
+    getLastResponseId: () => lastResponseIdRef.current,
   };
 }
