@@ -7,6 +7,7 @@ import wretch from "wretch";
 import AbortAddon from "wretch/addons/abort";
 import {
   isOutputTextDelta,
+  isResponseCompleted,
   isResponseCreated,
   parseNDJSONStream,
 } from "@/lib/stream-parser";
@@ -28,6 +29,7 @@ export type ChatOpenAIClientInput = ChatInput;
  * Returned API:
  * - React Query mutation object from `useMutation`
  * - `text`: progressively accumulated streamed text (cleared on each mutate)
+ * - `data?.finalText`: final aggregated text once streaming completes
  * - `abort()`: cancels the in-flight fetch/stream
  * - `getLastResponseId()`: returns the last seen response id (if any)
  *
@@ -40,7 +42,8 @@ export type ChatOpenAIClientInput = ChatInput;
  * - On abort, streaming stops and no further text is appended.
  *
  * @param options Optional config, e.g. `key` to extend the mutation key.
- * @returns Mutation with `{ text, abort, getLastResponseId }` helpers.
+ * @returns Mutation with `{ text, abort, getLastResponseId }` helpers; final text
+ * is available on `data?.finalText`.
  *
  * @example Basic usage
  * const { mutate, isPending, data, text, abort, getLastResponseId } =
@@ -53,6 +56,7 @@ export type ChatOpenAIClientInput = ChatInput;
  * const isStreaming = isPending && text.length > 0;
  *
  * // Access response id after success: data?.responseId
+ * // Access final text after success: data?.finalText
  *
  * @example Continuation (follow-up request using previous response)
  * const m = useStreamMutation();
@@ -67,6 +71,8 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
   const [streamedText, setStreamedText] = useState("");
   const lastResponseIdRef = useRef<string | undefined>(undefined);
   const abortControllerRef = useRef<AbortController | null>(null);
+  let finalText: string;
+  const latestStreamedTextRef = useRef<string>("");
 
   useEffect(() => {
     return () => abortControllerRef.current?.abort();
@@ -77,7 +83,7 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
   };
 
   const mutation = useMutation<
-    { responseId?: string },
+    { responseId?: string; finalText: string },
     Error,
     ChatOpenAIClientInput
   >({
@@ -85,7 +91,8 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
     mutationFn: async (payload: ChatOpenAIClientInput) => {
       setStreamedText("");
       lastResponseIdRef.current = undefined;
-
+      finalText = "";
+      latestStreamedTextRef.current = "";
       abortControllerRef.current = new AbortController();
 
       try {
@@ -106,7 +113,10 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
         }
 
         if (!response.body) {
-          return { responseId: lastResponseIdRef.current };
+          return {
+            responseId: lastResponseIdRef.current,
+            finalText,
+          };
         }
 
         const reader = response.body.getReader();
@@ -117,20 +127,27 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
             if (isOutputTextDelta(event)) {
               accumulatedText += event.delta || "";
               setStreamedText(accumulatedText);
+              latestStreamedTextRef.current = accumulatedText;
             } else if (isResponseCreated(event)) {
               lastResponseIdRef.current = event.response.id;
+            } else if (isResponseCompleted(event)) {
+              finalText = accumulatedText;
             }
           });
         } catch (error) {
           if (error instanceof DOMException && error.name === "AbortError") {
             return {
               responseId: lastResponseIdRef.current,
+              finalText,
             };
           }
           throw error;
         }
 
-        return { responseId: lastResponseIdRef.current };
+        return {
+          responseId: lastResponseIdRef.current,
+          finalText,
+        };
       } catch (error) {
         throw error;
       } finally {
@@ -147,6 +164,7 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
     text: streamedText,
     abort,
     getLastResponseId: () => lastResponseIdRef.current,
+    getLastStreamedText: () => latestStreamedTextRef.current,
   };
 }
 

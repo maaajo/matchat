@@ -21,7 +21,7 @@ import {
 
 import { Card } from "@/components/ui/card";
 import { ChatContainer } from "@/modules/chat/ui/components/chat-container";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ChatMessage,
   ChatMessageContent,
@@ -52,9 +52,7 @@ type ChatMessage = {
 
 export const ChatView = ({ userName }: ChatViewProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [pendingAssistantId, setPendingAssistantId] = useState<string | null>(
-    null,
-  );
+  const pendingAssistantIdRef = useRef<string | null>(null);
 
   const form = useForm<ChatMessageFormData>({
     resolver: zodResolver(chatMessageSchema),
@@ -92,7 +90,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
       },
     ]);
 
-    setPendingAssistantId(assistantId);
+    pendingAssistantIdRef.current = assistantId;
 
     chat.mutate(
       {
@@ -107,7 +105,8 @@ export const ChatView = ({ userName }: ChatViewProps) => {
               msg.id === assistantId
                 ? {
                     ...msg,
-                    content: chat.text,
+                    content:
+                      dataResult?.finalText ?? chat.getLastStreamedText() ?? "",
                     isLoading: false,
                     error: !!error,
                     errorMessage: error?.message,
@@ -117,7 +116,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                 : msg,
             ),
           );
-          setPendingAssistantId(null);
+          pendingAssistantIdRef.current = null;
         },
       },
     );
@@ -156,7 +155,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
           )
         ) : (
           messages.map(msg => {
-            const isStreaming = msg.id === pendingAssistantId;
+            const isStreaming = msg.id === pendingAssistantIdRef.current;
             const content = isStreaming ? chat.text : msg.content;
             const loading = isStreaming
               ? chat.isPending && chat.text.length === 0
