@@ -25,8 +25,9 @@ import { useRef, useState } from "react";
 import {
   ChatMessage,
   ChatMessageContent,
-  ChatMessageName,
+  ChatMessageAuthor,
   MESSAGE_VARIANTS,
+  ChatMessageError,
 } from "@/modules/chat/ui/components/chat-message";
 import { useWatch } from "react-hook-form";
 import { cn } from "@/lib/utils";
@@ -167,11 +168,11 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                 variant={msg.variant}
                 userName={userName}
               >
-                <ChatMessageName>
+                <ChatMessageAuthor>
                   {msg.variant === MESSAGE_VARIANTS.USER
                     ? userName || "User"
                     : config.appName}
-                </ChatMessageName>
+                </ChatMessageAuthor>
                 <ChatMessageContent>
                   {loading ? (
                     <div className="flex items-center gap-x-2">
@@ -181,9 +182,9 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                     <>
                       <p>{content}</p>
                       {msg.error ? (
-                        <div className="text-destructive mt-2 text-xs">
+                        <ChatMessageError>
                           {msg.errorMessage || "Something went wrong"}
-                        </div>
+                        </ChatMessageError>
                       ) : null}
                     </>
                   )}
@@ -229,9 +230,6 @@ export const ChatView = ({ userName }: ChatViewProps) => {
           </Form>
         </div>
       </section>
-      <div className="px-4 pb-8">
-        <StreamMutationDebug m={chat} />
-      </div>
     </>
   );
 };
