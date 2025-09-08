@@ -21,7 +21,7 @@ import {
 
 import { Card } from "@/components/ui/card";
 import { ChatContainer } from "@/modules/chat/ui/components/chat-container";
-import { useRef, useState } from "react";
+import { KeyboardEvent, useRef, useState } from "react";
 import {
   ChatMessage,
   ChatMessageContent,
@@ -33,9 +33,13 @@ import { useWatch } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { Loader } from "@/components/ui/loader";
 import { useStreamMutation } from "@/hooks/use-stream-mutation";
-import { StreamMutationDebug } from "@/modules/chat/ui/components/chat-stream-debug";
 import { config } from "@/lib/config";
 import { nanoid } from "nanoid";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 type ChatViewProps = {
   userName?: string;
@@ -125,6 +129,13 @@ export const ChatView = ({ userName }: ChatViewProps) => {
     form.reset();
   };
 
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      form.handleSubmit(onSubmit)();
+    }
+  };
+
   return (
     <>
       <ChatContainer
@@ -205,11 +216,19 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                   <FormItem>
                     <FormControl>
                       <Card className="border-input bg-background focus-within:ring-ring relative flex flex-col overflow-hidden rounded-md border px-4 py-4 focus-within:ring-2 focus-within:ring-offset-2">
-                        <Textarea
-                          placeholder="Type your message here..."
-                          className="max-h-[200px] min-h-[44px] flex-1 resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                          {...field}
-                        />
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Textarea
+                              placeholder="Type your message here..."
+                              className="max-h-[200px] min-h-[44px] flex-1 resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                              {...field}
+                              onKeyDown={handleKeyDown}
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent side="top" sideOffset={20}>
+                            Press Enter to send or Shift+Enter for a newline
+                          </TooltipContent>
+                        </Tooltip>
                         <div className="flex justify-end">
                           <Button
                             type="submit"

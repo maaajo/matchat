@@ -1,0 +1,12 @@
+- [x] Enter should send a message
+- [x] Show tooltip that SHIFT + Enter starts new line
+- [ ] When message was send we should render pause with rectangle icon to pause
+      it
+- [ ] The chat container should be scrollable area
+- [ ] Use use-stick-to-bottom for smooth scrolling when loading
+- [ ] Add scroll button in the chat container being rendered
+- [ ] When new chat starts we should assign new id and change route
+- [ ] Add sidebar with past chats
+- [ ] Add model change
+- [ ] Add chat message actions
+- [ ] Add pdf and image attachments

@@ -3,7 +3,7 @@ description:
   Prefer deriving types, values, and config from sources of truth instead of
   duplicating or hard-coding them.
 globs: ["**/*.ts", "**/*.tsx"]
-alwaysApply: false
+alwaysApply: true
 ---
 
 # Prefer Derivation Over Manual Specification

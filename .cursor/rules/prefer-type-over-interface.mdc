@@ -2,7 +2,7 @@
 description:
   Enforce the use of `type` aliases over `interface` declarations in TypeScript.
 globs: ["**/*.ts", "**/*.tsx"]
-alwaysApply: false
+alwaysApply: true
 ---
 
 # Prefer `type` Over `interface` in TypeScript

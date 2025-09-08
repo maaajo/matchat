@@ -3,12 +3,7 @@
 import { AVATAR_VARIANTS, cn, generateAvatar } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import {
-  type ComponentProps,
-  createContext,
-  HTMLAttributes,
-  useContext,
-} from "react";
+import { type ComponentProps, createContext, useContext } from "react";
 
 const MESSAGE_VARIANTS = {
   USER: "user",
