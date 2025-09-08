@@ -1,15 +1,11 @@
 import { cn } from "@/lib/utils";
-import { ReactNode } from "react";
-
-type ChatContainerProps = React.HTMLAttributes<HTMLDivElement> & {
-  children?: ReactNode;
-};
+import { ComponentProps } from "react";
 
 export const ChatContainer = ({
   children,
   className,
   ...props
-}: ChatContainerProps) => {
+}: ComponentProps<"div">) => {
   return (
     <section
       className={cn("flex flex-1 flex-col gap-y-2", className)}

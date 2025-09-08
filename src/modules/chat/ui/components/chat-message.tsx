@@ -22,7 +22,7 @@ type ChatMessageContextValue = {
 
 const ChatMessageContext = createContext<ChatMessageContextValue | null>(null);
 
-export type ChatMessageProps = HTMLAttributes<HTMLDivElement> & {
+export type ChatMessageProps = ComponentProps<"div"> & {
   variant: (typeof MESSAGE_VARIANTS)[keyof typeof MESSAGE_VARIANTS];
   userName?: string;
 };
@@ -103,9 +103,7 @@ const ChatMessageContent = ({
   );
 };
 
-export type ChatMessageAuthorProps = HTMLAttributes<HTMLSpanElement> & {
-  children: React.ReactNode;
-};
+export type ChatMessageAuthorProps = ComponentProps<"span">;
 
 const ChatMessageAuthor = ({
   className,
