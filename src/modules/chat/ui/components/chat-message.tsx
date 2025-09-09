@@ -3,6 +3,7 @@
 import { AVATAR_VARIANTS, cn, generateAvatar } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { type ComponentProps, createContext, useContext } from "react";
 
 const MESSAGE_VARIANTS = {
@@ -132,7 +133,7 @@ const ChatMessageError = ({
   children,
   className,
   ...props
-}: ComponentProps<"span">) => {
+}: Omit<ComponentProps<typeof Alert>, "variant">) => {
   const context = useContext(ChatMessageContext);
 
   if (!context) {
@@ -142,9 +143,13 @@ const ChatMessageError = ({
   }
 
   return (
-    <span className={cn("text-destructive mt-2 text-xs", className)} {...props}>
-      {children}
-    </span>
+    <Alert
+      variant="destructive"
+      className={cn("mt-2 text-xs", className)}
+      {...props}
+    >
+      <AlertDescription>{children}</AlertDescription>
+    </Alert>
   );
 };
 

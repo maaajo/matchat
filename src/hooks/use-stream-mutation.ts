@@ -22,51 +22,46 @@ export type ChatOpenAIClientInput = ChatInput;
  * Starts a POST request to `/api/chat-openai` and incrementally exposes streamed
  * text as NDJSON frames arrive. The progressively accumulated text is available
  * via the returned `streamedText` field (hook state only, not in mutation.data).
- * The created response id (useful for continuations) is exposed as
- * `data?.responseId` on success. On abort, `data?.finalText` contains the last
- * accumulated text at the moment of abort, and `data?.aborted === true` with
- * `data?.abortReason` populated from `AbortSignal.reason`.
+ *
+ * Id semantics:
+ * - The response id is COMMITTED only when a `response.completed` event arrives.
+ * - Aborted runs never overwrite the last successful id.
+ * - The last successful id can be read via `getLastResponseId()` and is also
+ *   returned as `data?.responseId` on success. On abort, `data?.responseId`
+ *   will be the last successful id (if any).
+ *
+ * Abort semantics:
+ * - Call `abort(reason?)` to cancel the in-flight stream. The mutation resolves
+ *   with `{ aborted: true, finalText, abortReason }`. The last successful id is
+ *   preserved and exposed via `getLastResponseId()`.
+ *
+ * Errors:
+ * - Non-2xx, malformed frames, or network failures reject the mutation. In that
+ *   case `data` is undefined and `error` is populated. The last successful id is
+ *   still available via `getLastResponseId()`.
  *
  * Returned API:
  * - React Query mutation object from `useMutation`
  * - `streamedText`: progressively accumulated streamed text (cleared on each mutate)
- * - `data?.finalText`: final aggregated text once streaming completes or when aborted
- * - `data?.aborted`: boolean indicating whether the request was aborted
- * - `data?.abortReason`: abort reason from `AbortSignal.reason` (if aborted)
  * - `abort()`: cancels the in-flight fetch/stream with optional reason
+ * - `getLastResponseId()`: returns the last successfully completed response id
+ * - `getAbortReason()`: returns the last abort reason (if any)
  *
  * Derive common flags in UI:
  * - `isStreaming`: `mutation.isPending && streamedText.length > 0`
  * - `isGeneratingText`: same as `isStreaming`
  *
- * Notes:
- * - Errors (non-2xx, malformed frames, network) surface as `mutation.error`.
- * - On abort, streaming stops, no further text is appended, and `finalText` contains
- *   whatever was accumulated so far.
- *
  * @param options Optional config, e.g. `key` to extend the mutation key.
- * @returns Mutation with `{ streamedText, abort }` helpers; final text is
- * available on `data?.finalText` (also when aborted).
+ * @returns Mutation with `{ streamedText, abort, getLastResponseId, getAbortReason }`.
  *
  * @example Basic usage
- * const { mutate, isPending, data, streamedText, abort } =
- *   useStreamMutation();
- *
- * // Start streaming
+ * const { mutate, isPending, data, streamedText, abort } = useStreamMutation();
  * mutate({ input: "Hello!" });
- *
- * // Derive flags
  * const isStreaming = isPending && streamedText.length > 0;
- *
- * // Access response id after success: data?.responseId
- * // Access final text after success or abort: data?.finalText
- * // Check if aborted and why: data?.aborted, data?.abortReason
  *
  * @example Continuation (follow-up request using previous response)
  * const m = useStreamMutation();
- *
- * // Use id from last successful mutation result
- * m.mutate({ input: "Continue", previous_response_id: m.data?.responseId });
+ * m.mutate({ input: "Continue", previous_response_id: m.getLastResponseId() });
  */
 export function useStreamMutation(options?: { key?: readonly unknown[] }) {
   const [streamedText, setStreamedText] = useState("");

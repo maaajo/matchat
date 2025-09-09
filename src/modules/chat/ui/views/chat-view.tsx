@@ -53,6 +53,8 @@ type ChatMessage = {
   responseId?: string;
   error?: boolean;
   errorMessage?: string;
+  aborted?: boolean;
+  abortReason?: string;
 };
 
 export const ChatView = ({ userName }: ChatViewProps) => {
@@ -110,15 +112,13 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                     isLoading: false,
                     error: !!error,
                     errorMessage: error?.message,
-                    responseId: dataResult?.responseId || "",
+                    responseId: chat.getLastResponseId() || "",
+                    aborted: dataResult?.aborted,
+                    abortReason: chat.getAbortReason() || "",
                   }
                 : msg,
             ),
           );
-          const wasAborted = dataResult?.aborted;
-          if (wasAborted) {
-            toast.info(chat.getAbortReason() || "Aborted by the user");
-          }
           pendingAssistantIdRef.current = null;
         },
       },
@@ -226,6 +226,11 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                       {msg.error ? (
                         <ChatMessageError>
                           {msg.errorMessage || "Something went wrong"}
+                        </ChatMessageError>
+                      ) : null}
+                      {msg.aborted ? (
+                        <ChatMessageError>
+                          {msg.abortReason || "Aborted by user"}
                         </ChatMessageError>
                       ) : null}
                     </>

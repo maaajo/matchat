@@ -12,7 +12,7 @@
       it
 - [x] Add tooltip for cancel generation
 - [x] When aborted partial text is cleared
-- [ ] When aborted always render at the bottom red alert saying aborted by the
+- [x] When aborted always render at the bottom red alert saying aborted by the
       user
 - [x] When aborted we should not send the previous response id but have the one
       that succeeded?
@@ -26,3 +26,4 @@
 - [ ] Add model change
 - [ ] Add chat message actions
 - [ ] Add pdf and image attachments
+- [ ] Maybe all the default/fallback message should be an object?
