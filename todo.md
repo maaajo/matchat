@@ -6,10 +6,12 @@
 - [x] Add tooltip with denied cursor when no message saying missing message
 - [x] Check if it's possible to not render on each keystroke because of the
       message useWatch
-- [ ] Add tooltip to button to send message
-- [ ] Add tooltip for cancel generation
+- [x] Add tooltip to button when message is required
+- [x] Add tooltip to button to send message
 - [ ] When message was send we should render pause with rectangle icon to pause
       it
+- [x] Add tooltip for cancel generation
+- [ ] Add model name to the chat message message
 - [ ] The chat container should be scrollable area
 - [ ] Use use-stick-to-bottom for smooth scrolling when loading
 - [ ] Add scroll button in the chat container being rendered

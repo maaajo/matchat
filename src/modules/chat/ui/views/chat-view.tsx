@@ -152,6 +152,21 @@ export const ChatView = ({ userName }: ChatViewProps) => {
     form.handleSubmit(onSubmit)();
   };
 
+  const getButtonTooltipContent = (opts: {
+    isChatPending: boolean;
+    isFormValid: boolean;
+  }) => {
+    if (opts.isChatPending) {
+      return "Click cancel to abort generation";
+    }
+
+    if (!opts.isFormValid) {
+      return "Message is required";
+    }
+
+    return "Send Message";
+  };
+
   return (
     <>
       <ChatContainer
@@ -251,15 +266,25 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                           </TooltipContent>
                         </Tooltip>
                         <div className="flex justify-end">
-                          <Button
-                            type="submit"
-                            isLoading={chat.isPending}
-                            disabled={chat.isPending || !isFormValid}
-                            className={`${!isFormValid ? "cursor-not-allowed" : "cursor-pointer"}`}
-                          >
-                            <SendIcon />
-                            Ask
-                          </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                type="submit"
+                                isLoading={chat.isPending}
+                                disabled={chat.isPending || !isFormValid}
+                                className={`${!isFormValid ? "cursor-not-allowed" : "cursor-pointer"}`}
+                              >
+                                <SendIcon />
+                                Ask
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" sideOffset={0}>
+                              {getButtonTooltipContent({
+                                isFormValid,
+                                isChatPending: chat.isPending,
+                              })}
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
                       </Card>
                     </FormControl>
