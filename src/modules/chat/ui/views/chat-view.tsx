@@ -29,7 +29,6 @@ import {
   MESSAGE_VARIANTS,
   ChatMessageError,
 } from "@/modules/chat/ui/components/chat-message";
-import { useWatch } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { Loader } from "@/components/ui/loader";
 import { useStreamMutation } from "@/hooks/use-stream-mutation";
@@ -60,22 +59,17 @@ export const ChatView = ({ userName }: ChatViewProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const pendingAssistantIdRef = useRef<string | null>(null);
 
+  console.log("test");
+
   const form = useForm<ChatMessageFormData>({
     resolver: zodResolver(chatMessageSchema),
     defaultValues: {
       message: "",
     },
+    mode: "onSubmit",
   });
 
   const chat = useStreamMutation();
-
-  const userMessage = useWatch({
-    control: form.control,
-    name: "message",
-    compute: (data: string) => {
-      return data.length ? data : "";
-    },
-  });
 
   const isFormValid = form.formState.isDirty && form.formState.isValid;
 
@@ -135,26 +129,27 @@ export const ChatView = ({ userName }: ChatViewProps) => {
 
   const handleKeyDown = (
     e: KeyboardEvent<HTMLTextAreaElement>,
-    isFormValid: boolean,
+    opts: { isChatPending: boolean; isFormValid: boolean },
   ) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      if (!chat.isPending && isFormValid) {
-        form.handleSubmit(onSubmit)();
-      } else {
-        if (chat.isPending) {
-          toast.info(
-            "Can't send a new message when the previous one is still generating",
-          );
-          return;
-        }
-
-        if (!isFormValid) {
-          toast.info("Message is required");
-          return;
-        }
-      }
+    if (e.key !== "Enter" || e.shiftKey) {
+      return;
     }
+
+    e.preventDefault();
+
+    if (opts.isChatPending) {
+      toast.info(
+        "Can't send a new message while the previous one is generating",
+      );
+      return;
+    }
+
+    if (!opts.isFormValid) {
+      toast.info("Message is required");
+      return;
+    }
+
+    form.handleSubmit(onSubmit)();
   };
 
   return (
@@ -166,7 +161,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
         )}
       >
         {messages.length === 0 ? (
-          userMessage ? (
+          isFormValid ? (
             <>
               <h4 className="max-w-md text-center text-xl font-bold">
                 Looks great, ready to send?
@@ -243,7 +238,12 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                               placeholder="Type your message here..."
                               className="max-h-[200px] min-h-[44px] flex-1 resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                               {...field}
-                              onKeyDown={e => handleKeyDown(e, isFormValid)}
+                              onKeyDown={e =>
+                                handleKeyDown(e, {
+                                  isChatPending: chat.isPending,
+                                  isFormValid,
+                                })
+                              }
                             />
                           </TooltipTrigger>
                           <TooltipContent side="top" sideOffset={20}>

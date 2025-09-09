@@ -3,7 +3,9 @@
 - [x] Disable send button when no text
 - [x] Disable also when no text to send with Enter
 - [x] Show toast when trying to enter and no message
-- [ ] Add tooltip with denied cursor when no message saying missing message
+- [x] Add tooltip with denied cursor when no message saying missing message
+- [x] Check if it's possible to not render on each keystroke because of the
+      message useWatch
 - [ ] Add tooltip to button to send message
 - [ ] Add tooltip for cancel generation
 - [ ] When message was send we should render pause with rectangle icon to pause
