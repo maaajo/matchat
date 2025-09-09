@@ -14,7 +14,7 @@
 - [x] When aborted partial text is cleared
 - [ ] When aborted always render at the bottom red alert saying aborted by the
       user
-- [ ] When aborted we should not send the previous response id but have the one
+- [x] When aborted we should not send the previous response id but have the one
       that succeeded?
       {{"errorCode":400,"errorMessage":"Previous response with id 'resp_68bfe4292dc081939d6b03fbf7705bf7006fffc95e9d1bc2' not found.","status":"error","timestamp":"2025-09-09T08:26:05.127Z"}}
 - [ ] Add model name to the chat message message

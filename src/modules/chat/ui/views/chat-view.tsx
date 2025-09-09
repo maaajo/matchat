@@ -96,7 +96,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
     chat.mutate(
       {
         input: data.message,
-        previous_response_id: chat.data?.responseId,
+        previous_response_id: chat.getLastResponseId(),
       },
       {
         onError: () => {},
@@ -117,7 +117,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
           );
           const wasAborted = dataResult?.aborted;
           if (wasAborted) {
-            toast.info(dataResult?.abortReason || "Aborted by the user");
+            toast.info(chat.getAbortReason() || "Aborted by the user");
           }
           pendingAssistantIdRef.current = null;
         },

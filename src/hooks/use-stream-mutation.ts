@@ -71,6 +71,7 @@ export type ChatOpenAIClientInput = ChatInput;
 export function useStreamMutation(options?: { key?: readonly unknown[] }) {
   const [streamedText, setStreamedText] = useState("");
   const lastResponseIdRef = useRef<string | undefined>(undefined);
+  const abortReasonRef = useRef<string | undefined>(undefined);
   const abortControllerRef = useRef<AbortController | null>(null);
   let finalText: string;
 
@@ -95,8 +96,9 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
     mutationKey: ["chat-openai", ...(options?.key ?? [])],
     mutationFn: async (payload: ChatOpenAIClientInput) => {
       setStreamedText("");
-      lastResponseIdRef.current = undefined;
+      // Preserve last successful response id across runs
       finalText = "";
+      abortReasonRef.current = undefined;
       abortControllerRef.current = new AbortController();
       // reset abort state on new mutation
 
@@ -126,6 +128,7 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
 
         const reader = response.body.getReader();
         let accumulatedText = "";
+        let createdId: string | undefined = undefined;
 
         try {
           await parseNDJSONStream(reader, event => {
@@ -133,19 +136,23 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
               accumulatedText += event.delta || "";
               setStreamedText(accumulatedText);
             } else if (isResponseCreated(event)) {
-              lastResponseIdRef.current = event.response.id;
+              createdId = event.response.id;
             } else if (isResponseCompleted(event)) {
               finalText = accumulatedText;
+              if (createdId) {
+                lastResponseIdRef.current = createdId;
+              }
             }
           });
         } catch (error) {
           if (error instanceof DOMException && error.name === "AbortError") {
+            abortReasonRef.current =
+              abortControllerRef.current?.signal.reason || "Aborted by user";
             return {
               responseId: lastResponseIdRef.current,
               finalText: accumulatedText,
               aborted: true,
-              abortReason:
-                abortControllerRef.current?.signal.reason ?? "Aborted by user",
+              abortReason: abortReasonRef.current,
             };
           }
           throw error;
@@ -171,6 +178,8 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
     ...mutation,
     streamedText,
     abort,
+    getLastResponseId: () => lastResponseIdRef.current,
+    getAbortReason: () => abortReasonRef.current,
   };
 }
 
