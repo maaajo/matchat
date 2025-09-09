@@ -12,7 +12,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { SendIcon } from "lucide-react";
+import { SendIcon, Square as StopIcon } from "lucide-react";
 
 import {
   chatMessageSchema,
@@ -59,8 +59,6 @@ export const ChatView = ({ userName }: ChatViewProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const pendingAssistantIdRef = useRef<string | null>(null);
 
-  console.log("test");
-
   const form = useForm<ChatMessageFormData>({
     resolver: zodResolver(chatMessageSchema),
     defaultValues: {
@@ -98,7 +96,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
     chat.mutate(
       {
         input: data.message,
-        previous_response_id: chat.getLastResponseId(),
+        previous_response_id: chat.data?.responseId,
       },
       {
         onError: () => {},
@@ -113,12 +111,15 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                     isLoading: false,
                     error: !!error,
                     errorMessage: error?.message,
-                    responseId:
-                      dataResult?.responseId ?? chat.getLastResponseId(),
+                    responseId: dataResult?.responseId ?? "",
                   }
                 : msg,
             ),
           );
+          const wasAborted = dataResult?.aborted;
+          if (wasAborted) {
+            toast.info("Generation stopped");
+          }
           pendingAssistantIdRef.current = null;
         },
       },
@@ -157,7 +158,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
     isFormValid: boolean;
   }) => {
     if (opts.isChatPending) {
-      return "Click cancel to abort generation";
+      return "Click stop to abort generation";
     }
 
     if (!opts.isFormValid) {
@@ -268,15 +269,25 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                         <div className="flex justify-end">
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button
-                                type="submit"
-                                isLoading={chat.isPending}
-                                disabled={chat.isPending || !isFormValid}
-                                className={`${!isFormValid ? "cursor-not-allowed" : "cursor-pointer"}`}
-                              >
-                                <SendIcon />
-                                Ask
-                              </Button>
+                              {chat.isPending ? (
+                                <Button
+                                  type="button"
+                                  onClick={() => chat.abort()}
+                                  className="cursor-pointer"
+                                >
+                                  <StopIcon />
+                                  Stop
+                                </Button>
+                              ) : (
+                                <Button
+                                  type="submit"
+                                  disabled={!isFormValid}
+                                  className={`${!isFormValid ? "cursor-not-allowed" : "cursor-pointer"}`}
+                                >
+                                  <SendIcon />
+                                  Ask
+                                </Button>
+                              )}
                             </TooltipTrigger>
                             <TooltipContent side="top" sideOffset={0}>
                               {getButtonTooltipContent({

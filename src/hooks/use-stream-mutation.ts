@@ -23,15 +23,14 @@ export type ChatOpenAIClientInput = ChatInput;
  * text as NDJSON frames arrive. The progressively accumulated text is available
  * via the returned `text` field (hook state only, not in mutation.data). The
  * created response id (useful for continuations) is exposed as
- * `data?.responseId` on success and is also
- * accessible at any time via `getLastResponseId()`.
+ * `data?.responseId` on success.
  *
  * Returned API:
  * - React Query mutation object from `useMutation`
  * - `text`: progressively accumulated streamed text (cleared on each mutate)
  * - `data?.finalText`: final aggregated text once streaming completes
  * - `abort()`: cancels the in-flight fetch/stream
- * - `getLastResponseId()`: returns the last seen response id (if any)
+ * - `getLastStreamedText()`: returns the most recent streamed text at any time
  *
  * Derive common flags in UI:
  * - `isStreaming`: `mutation.isPending && text.length > 0`
@@ -42,11 +41,11 @@ export type ChatOpenAIClientInput = ChatInput;
  * - On abort, streaming stops and no further text is appended.
  *
  * @param options Optional config, e.g. `key` to extend the mutation key.
- * @returns Mutation with `{ text, abort, getLastResponseId }` helpers; final text
- * is available on `data?.finalText`.
+ * @returns Mutation with `{ text, abort, getLastStreamedText }` helpers; final
+ * text is available on `data?.finalText`.
  *
  * @example Basic usage
- * const { mutate, isPending, data, text, abort, getLastResponseId } =
+ * const { mutate, isPending, data, text, abort } =
  *   useStreamMutation();
  *
  * // Start streaming
@@ -63,9 +62,6 @@ export type ChatOpenAIClientInput = ChatInput;
  *
  * // Use id from last successful mutation result
  * m.mutate({ input: "Continue", previous_response_id: m.data?.responseId });
- *
- * // Or use the helper, which is set as soon as the stream emits `response.created`
- * m.mutate({ input: "Continue", previous_response_id: m.getLastResponseId() });
  */
 export function useStreamMutation(options?: { key?: readonly unknown[] }) {
   const [streamedText, setStreamedText] = useState("");
@@ -83,7 +79,7 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
   };
 
   const mutation = useMutation<
-    { responseId?: string; finalText: string },
+    { responseId?: string; finalText: string; aborted?: boolean },
     Error,
     ChatOpenAIClientInput
   >({
@@ -94,6 +90,7 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
       finalText = "";
       latestStreamedTextRef.current = "";
       abortControllerRef.current = new AbortController();
+      // reset abort state on new mutation
 
       try {
         const response = await wretch("/api/chat-openai")
@@ -139,6 +136,7 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
             return {
               responseId: lastResponseIdRef.current,
               finalText,
+              aborted: true,
             };
           }
           throw error;
@@ -147,6 +145,7 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
         return {
           responseId: lastResponseIdRef.current,
           finalText,
+          aborted: false,
         };
       } catch (error) {
         throw error;
@@ -163,7 +162,6 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
     ...mutation,
     text: streamedText,
     abort,
-    getLastResponseId: () => lastResponseIdRef.current,
     getLastStreamedText: () => latestStreamedTextRef.current,
   };
 }
