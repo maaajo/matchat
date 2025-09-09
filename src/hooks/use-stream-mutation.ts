@@ -21,41 +21,46 @@ export type ChatOpenAIClientInput = ChatInput;
  *
  * Starts a POST request to `/api/chat-openai` and incrementally exposes streamed
  * text as NDJSON frames arrive. The progressively accumulated text is available
- * via the returned `text` field (hook state only, not in mutation.data). The
- * created response id (useful for continuations) is exposed as
- * `data?.responseId` on success.
+ * via the returned `streamedText` field (hook state only, not in mutation.data).
+ * The created response id (useful for continuations) is exposed as
+ * `data?.responseId` on success. On abort, `data?.finalText` contains the last
+ * accumulated text at the moment of abort, and `data?.aborted === true` with
+ * `data?.abortReason` populated from `AbortSignal.reason`.
  *
  * Returned API:
  * - React Query mutation object from `useMutation`
- * - `text`: progressively accumulated streamed text (cleared on each mutate)
- * - `data?.finalText`: final aggregated text once streaming completes
- * - `abort()`: cancels the in-flight fetch/stream
- * - `getLastStreamedText()`: returns the most recent streamed text at any time
+ * - `streamedText`: progressively accumulated streamed text (cleared on each mutate)
+ * - `data?.finalText`: final aggregated text once streaming completes or when aborted
+ * - `data?.aborted`: boolean indicating whether the request was aborted
+ * - `data?.abortReason`: abort reason from `AbortSignal.reason` (if aborted)
+ * - `abort()`: cancels the in-flight fetch/stream with optional reason
  *
  * Derive common flags in UI:
- * - `isStreaming`: `mutation.isPending && text.length > 0`
+ * - `isStreaming`: `mutation.isPending && streamedText.length > 0`
  * - `isGeneratingText`: same as `isStreaming`
  *
  * Notes:
  * - Errors (non-2xx, malformed frames, network) surface as `mutation.error`.
- * - On abort, streaming stops and no further text is appended.
+ * - On abort, streaming stops, no further text is appended, and `finalText` contains
+ *   whatever was accumulated so far.
  *
  * @param options Optional config, e.g. `key` to extend the mutation key.
- * @returns Mutation with `{ text, abort, getLastStreamedText }` helpers; final
- * text is available on `data?.finalText`.
+ * @returns Mutation with `{ streamedText, abort }` helpers; final text is
+ * available on `data?.finalText` (also when aborted).
  *
  * @example Basic usage
- * const { mutate, isPending, data, text, abort } =
+ * const { mutate, isPending, data, streamedText, abort } =
  *   useStreamMutation();
  *
  * // Start streaming
  * mutate({ input: "Hello!" });
  *
  * // Derive flags
- * const isStreaming = isPending && text.length > 0;
+ * const isStreaming = isPending && streamedText.length > 0;
  *
  * // Access response id after success: data?.responseId
- * // Access final text after success: data?.finalText
+ * // Access final text after success or abort: data?.finalText
+ * // Check if aborted and why: data?.aborted, data?.abortReason
  *
  * @example Continuation (follow-up request using previous response)
  * const m = useStreamMutation();
@@ -68,18 +73,22 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
   const lastResponseIdRef = useRef<string | undefined>(undefined);
   const abortControllerRef = useRef<AbortController | null>(null);
   let finalText: string;
-  const latestStreamedTextRef = useRef<string>("");
 
   useEffect(() => {
     return () => abortControllerRef.current?.abort();
   }, []);
 
-  const abort = () => {
-    abortControllerRef.current?.abort();
+  const abort = (abortMessage?: string) => {
+    abortControllerRef.current?.abort(abortMessage);
   };
 
   const mutation = useMutation<
-    { responseId?: string; finalText: string; aborted?: boolean },
+    {
+      responseId?: string;
+      finalText: string;
+      aborted?: boolean;
+      abortReason?: string;
+    },
     Error,
     ChatOpenAIClientInput
   >({
@@ -88,7 +97,6 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
       setStreamedText("");
       lastResponseIdRef.current = undefined;
       finalText = "";
-      latestStreamedTextRef.current = "";
       abortControllerRef.current = new AbortController();
       // reset abort state on new mutation
 
@@ -124,7 +132,6 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
             if (isOutputTextDelta(event)) {
               accumulatedText += event.delta || "";
               setStreamedText(accumulatedText);
-              latestStreamedTextRef.current = accumulatedText;
             } else if (isResponseCreated(event)) {
               lastResponseIdRef.current = event.response.id;
             } else if (isResponseCompleted(event)) {
@@ -135,8 +142,10 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
           if (error instanceof DOMException && error.name === "AbortError") {
             return {
               responseId: lastResponseIdRef.current,
-              finalText,
+              finalText: accumulatedText,
               aborted: true,
+              abortReason:
+                abortControllerRef.current?.signal.reason ?? "Aborted by user",
             };
           }
           throw error;
@@ -160,9 +169,8 @@ export function useStreamMutation(options?: { key?: readonly unknown[] }) {
 
   return {
     ...mutation,
-    text: streamedText,
+    streamedText,
     abort,
-    getLastStreamedText: () => latestStreamedTextRef.current,
   };
 }
 

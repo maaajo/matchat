@@ -106,19 +106,18 @@ export const ChatView = ({ userName }: ChatViewProps) => {
               msg.id === assistantId
                 ? {
                     ...msg,
-                    content:
-                      dataResult?.finalText ?? chat.getLastStreamedText() ?? "",
+                    content: dataResult?.finalText || "",
                     isLoading: false,
                     error: !!error,
                     errorMessage: error?.message,
-                    responseId: dataResult?.responseId ?? "",
+                    responseId: dataResult?.responseId || "",
                   }
                 : msg,
             ),
           );
           const wasAborted = dataResult?.aborted;
           if (wasAborted) {
-            toast.info("Generation stopped");
+            toast.info(dataResult?.abortReason || "Aborted by the user");
           }
           pendingAssistantIdRef.current = null;
         },
@@ -200,9 +199,9 @@ export const ChatView = ({ userName }: ChatViewProps) => {
         ) : (
           messages.map(msg => {
             const isStreaming = msg.id === pendingAssistantIdRef.current;
-            const content = isStreaming ? chat.text : msg.content;
+            const content = isStreaming ? chat.streamedText : msg.content;
             const loading = isStreaming
-              ? chat.isPending && chat.text.length === 0
+              ? chat.isPending && chat.streamedText.length === 0
               : false;
 
             return (
@@ -272,7 +271,9 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                               {chat.isPending ? (
                                 <Button
                                   type="button"
-                                  onClick={() => chat.abort()}
+                                  onClick={() =>
+                                    chat.abort("Generation aborted by the user")
+                                  }
                                   className="cursor-pointer"
                                 >
                                   <StopIcon />
