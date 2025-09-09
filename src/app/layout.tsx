@@ -30,7 +30,7 @@ export default function RootLayout({
       <body className={`bg-background antialiased`}>
         <Providers>
           {children}
-          <Toaster />
+          <Toaster position="top-center" />
         </Providers>
       </body>
     </html>

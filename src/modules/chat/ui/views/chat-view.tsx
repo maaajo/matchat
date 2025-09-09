@@ -40,6 +40,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 
 type ChatViewProps = {
   userName?: string;
@@ -67,6 +68,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
   });
 
   const chat = useStreamMutation();
+
   const userMessage = useWatch({
     control: form.control,
     name: "message",
@@ -74,6 +76,8 @@ export const ChatView = ({ userName }: ChatViewProps) => {
       return data.length ? data : "";
     },
   });
+
+  const isFormValid = form.formState.isDirty && form.formState.isValid;
 
   const onSubmit = (data: ChatMessageFormData) => {
     const userId = nanoid();
@@ -129,10 +133,27 @@ export const ChatView = ({ userName }: ChatViewProps) => {
     form.reset();
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (
+    e: KeyboardEvent<HTMLTextAreaElement>,
+    isFormValid: boolean,
+  ) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      form.handleSubmit(onSubmit)();
+      if (!chat.isPending && isFormValid) {
+        form.handleSubmit(onSubmit)();
+      } else {
+        if (chat.isPending) {
+          toast.info(
+            "Can't send a new message when the previous one is still generating",
+          );
+          return;
+        }
+
+        if (!isFormValid) {
+          toast.info("Message is required");
+          return;
+        }
+      }
     }
   };
 
@@ -222,7 +243,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                               placeholder="Type your message here..."
                               className="max-h-[200px] min-h-[44px] flex-1 resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                               {...field}
-                              onKeyDown={handleKeyDown}
+                              onKeyDown={e => handleKeyDown(e, isFormValid)}
                             />
                           </TooltipTrigger>
                           <TooltipContent side="top" sideOffset={20}>
@@ -233,7 +254,8 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                           <Button
                             type="submit"
                             isLoading={chat.isPending}
-                            disabled={chat.isPending}
+                            disabled={chat.isPending || !isFormValid}
+                            className={`${!isFormValid ? "cursor-not-allowed" : "cursor-pointer"}`}
                           >
                             <SendIcon />
                             Ask
