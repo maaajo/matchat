@@ -23,9 +23,11 @@
 - [x] StickToBottom should be used in ChatContainer
 - [x] Stick to bottom button should be it's onw component imported and looking
       differently
-- [ ] The scrollable area should be the entire page
-- [ ] The messages should appear as they are rendered behind the Section with
+- [x] The scrollable area should be the entire page
+- [x] The messages should appear as they are rendered behind the Section with
       TextArea
+- [ ] Fix the positioning of the scroll to bottom button
+- [ ] Fix the positioning of the welcome message
 - [ ] Add model name to the chat message message
 - [ ] When new chat starts we should assign new id and change route
 - [ ] Add sidebar with past chats

@@ -162,9 +162,8 @@ export namespace StickToBottom {
           height: "100%",
           width: "100%",
         }}
-        className={className}
       >
-        <div {...props} ref={context.contentRef}>
+        <div className={className} {...props} ref={context.contentRef}>
           {typeof children === "function" ? children(context) : children}
         </div>
       </div>

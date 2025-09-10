@@ -15,7 +15,7 @@ export function ScrollToBottomButton() {
 
   return (
     <Button
-      className="bg-background/80 ring-border hover:bg-background text-foreground absolute bottom-1 left-1/2 z-10 -translate-x-1/2 text-xs shadow-md ring-1"
+      className="bg-background/20 hover:bg-background/20 text-foreground border-input absolute bottom-44 left-1/2 z-[60] -translate-x-1/2 rounded-md border text-xs backdrop-blur-lg hover:backdrop-blur-xl"
       onClick={() => scrollToBottom()}
     >
       Scroll to bottom
