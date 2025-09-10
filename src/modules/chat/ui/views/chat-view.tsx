@@ -187,10 +187,8 @@ export const ChatView = ({ userName }: ChatViewProps) => {
   return (
     <>
       <ChatContainer
-        className={cn(
-          "flex w-full flex-col justify-start gap-y-2 px-4 py-12",
-          messages.length === 0 ? "items-center justify-center" : null,
-        )}
+        className="flex w-full flex-col justify-start gap-y-2 px-4 py-12"
+        contentClassName={`${messages.length === 0 ? "flex items-center justify-center" : null}`}
       >
         {messages.length === 0 ? (
           isFormValid ? (

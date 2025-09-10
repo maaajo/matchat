@@ -21,7 +21,7 @@
 - [x] Use use-stick-to-bottom for smooth scrolling when loading
 - [x] Add scroll button in the chat container being rendered
 - [x] StickToBottom should be used in ChatContainer
-- [ ] Stick to bottom button should be it's onw component imported and looking
+- [x] Stick to bottom button should be it's onw component imported and looking
       differently
 - [ ] The scrollable area should be the entire page
 - [ ] The messages should appear as they are rendered behind the Section with

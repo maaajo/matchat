@@ -148,7 +148,11 @@ export namespace StickToBottom {
     children: ((context: StickToBottomContext) => ReactNode) | ReactNode;
   }
 
-  export function Content({ children, ...props }: ContentProps): ReactNode {
+  export function Content({
+    children,
+    className,
+    ...props
+  }: ContentProps): ReactNode {
     const context = useStickToBottomContext();
 
     return (
@@ -158,6 +162,7 @@ export namespace StickToBottom {
           height: "100%",
           width: "100%",
         }}
+        className={className}
       >
         <div {...props} ref={context.contentRef}>
           {typeof children === "function" ? children(context) : children}
