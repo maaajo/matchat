@@ -11,7 +11,7 @@ type ChatLayoutProps = Readonly<{
 export default function ChatLayout({ children }: ChatLayoutProps) {
   return (
     <StickToBottom className="h-dvh w-full" resize="smooth" initial="smooth">
-      <StickToBottom.Content className="h-full">
+      <StickToBottom.Content className="pb-48">
         <main className="container mx-auto flex h-full w-full max-w-5xl flex-col items-center px-4 shadow-2xl">
           {children}
         </main>

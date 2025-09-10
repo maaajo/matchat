@@ -7,8 +7,6 @@ import { ArrowDownIcon } from "lucide-react";
 export function ScrollToBottomButton() {
   const { isAtBottom, scrollToBottom } = useStickToBottomContext();
 
-  console.log(isAtBottom);
-
   if (isAtBottom) {
     return null;
   }
