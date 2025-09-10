@@ -29,7 +29,6 @@ import {
   MESSAGE_VARIANTS,
   ChatMessageError,
 } from "@/modules/chat/ui/components/chat-message";
-import { cn } from "@/lib/utils";
 import { Loader } from "@/components/ui/loader";
 import { useStreamMutation } from "@/hooks/use-stream-mutation";
 import { config } from "@/lib/config";
@@ -187,7 +186,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
   return (
     <>
       <ChatContainer
-        className="flex w-full flex-col justify-start gap-y-2 px-4 py-12"
+        className="flex w-full flex-col justify-start gap-y-2 px-4 py-12 pb-52"
         contentClassName={`${messages.length === 0 ? "flex items-center justify-center" : null}`}
       >
         {messages.length === 0 ? (
@@ -258,8 +257,9 @@ export const ChatView = ({ userName }: ChatViewProps) => {
           </>
         )}
       </ChatContainer>
-      <section className="w-full shrink-0">
-        <div className="px-4 py-4">
+
+      <section className="fixed right-0 bottom-0 left-0 z-50">
+        <div className="container mx-auto w-full max-w-5xl px-4 py-4 pt-2">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -268,7 +268,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Card className="border-input bg-background focus-within:ring-ring relative flex flex-col overflow-hidden rounded-md border px-4 py-4 focus-within:ring-2 focus-within:ring-offset-2">
+                      <Card className="border-input bg-background/20 focus-within:ring-ring relative flex flex-col overflow-hidden rounded-md border px-4 py-4 backdrop-blur-lg focus-within:ring-2 focus-within:ring-offset-2">
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Textarea
