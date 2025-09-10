@@ -188,7 +188,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
       <ChatContainer className="flex w-full flex-col justify-start gap-y-2 px-4 pt-12">
         {messages.length === 0 ? (
           isFormValid ? (
-            <div className="flex h-full flex-col items-center justify-center px-4 py-12">
+            <div className="flex min-h-[calc(100dvh-theme(spacing.48)-theme(spacing.12))] flex-col items-center justify-center px-4 py-12">
               <h4 className="text-center text-xl font-bold">
                 Looks great, ready to send?
               </h4>
@@ -197,7 +197,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
               </p>
             </div>
           ) : (
-            <div className="flex h-full flex-col items-center justify-center px-4 py-12">
+            <div className="flex min-h-[calc(100dvh-theme(spacing.48)-theme(spacing.12))] flex-col items-center justify-center px-4 py-12">
               <h4 className="text-center text-xl font-bold">
                 Ready to chat? Let&apos;s explore together!
               </h4>
