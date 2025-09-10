@@ -40,11 +40,6 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import {
-  StickToBottom,
-  useStickToBottomContext,
-} from "@/components/stick-to-bottom";
-import { ArrowDownCircle } from "lucide-react";
 
 type ChatViewProps = {
   userName?: string;
@@ -193,7 +188,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
     <>
       <ChatContainer
         className={cn(
-          "w-full",
+          "flex w-full flex-col justify-start gap-y-2 px-4 py-12",
           messages.length === 0 ? "items-center justify-center" : null,
         )}
       >
@@ -219,58 +214,50 @@ export const ChatView = ({ userName }: ChatViewProps) => {
             </div>
           )
         ) : (
-          <StickToBottom
-            className="relative h-full min-h-0 flex-1"
-            resize="smooth"
-            initial="smooth"
-          >
-            <StickToBottom.Content className="flex min-h-full flex-col justify-start gap-y-2 px-4 py-12">
-              {messages.map(msg => {
-                const isStreaming = msg.id === pendingAssistantIdRef.current;
-                const content = isStreaming ? chat.streamedText : msg.content;
-                const loading = isStreaming
-                  ? chat.isPending && chat.streamedText.length === 0
-                  : false;
+          <>
+            {messages.map(msg => {
+              const isStreaming = msg.id === pendingAssistantIdRef.current;
+              const content = isStreaming ? chat.streamedText : msg.content;
+              const loading = isStreaming
+                ? chat.isPending && chat.streamedText.length === 0
+                : false;
 
-                return (
-                  <ChatMessage
-                    key={msg.id}
-                    variant={msg.variant}
-                    userName={userName}
-                  >
-                    <ChatMessageAuthor>
-                      {msg.variant === MESSAGE_VARIANTS.USER
-                        ? userName || "User"
-                        : config.appName}
-                    </ChatMessageAuthor>
-                    <ChatMessageContent>
-                      {loading ? (
-                        <div className="flex items-center gap-x-2">
-                          <Loader variant="dots" size="lg" />
-                        </div>
-                      ) : (
-                        <>
-                          <p>{content}</p>
-                          {msg.error ? (
-                            <ChatMessageError>
-                              {msg.errorMessage || "Something went wrong"}
-                            </ChatMessageError>
-                          ) : null}
-                          {msg.aborted ? (
-                            <ChatMessageError>
-                              {msg.abortReason || "Aborted by user"}
-                            </ChatMessageError>
-                          ) : null}
-                        </>
-                      )}
-                    </ChatMessageContent>
-                  </ChatMessage>
-                );
-              })}
-            </StickToBottom.Content>
-
-            <ScrollToBottomButton />
-          </StickToBottom>
+              return (
+                <ChatMessage
+                  key={msg.id}
+                  variant={msg.variant}
+                  userName={userName}
+                >
+                  <ChatMessageAuthor>
+                    {msg.variant === MESSAGE_VARIANTS.USER
+                      ? userName || "User"
+                      : config.appName}
+                  </ChatMessageAuthor>
+                  <ChatMessageContent>
+                    {loading ? (
+                      <div className="flex items-center gap-x-2">
+                        <Loader variant="dots" size="lg" />
+                      </div>
+                    ) : (
+                      <>
+                        <p>{content}</p>
+                        {msg.error ? (
+                          <ChatMessageError>
+                            {msg.errorMessage || "Something went wrong"}
+                          </ChatMessageError>
+                        ) : null}
+                        {msg.aborted ? (
+                          <ChatMessageError>
+                            {msg.abortReason || "Aborted by user"}
+                          </ChatMessageError>
+                        ) : null}
+                      </>
+                    )}
+                  </ChatMessageContent>
+                </ChatMessage>
+              );
+            })}
+          </>
         )}
       </ChatContainer>
       <section className="w-full shrink-0">
@@ -348,20 +335,3 @@ export const ChatView = ({ userName }: ChatViewProps) => {
     </>
   );
 };
-
-function ScrollToBottomButton() {
-  const { isAtBottom, scrollToBottom } = useStickToBottomContext();
-
-  if (isAtBottom) return null;
-
-  return (
-    <button
-      type="button"
-      className="bg-background/80 ring-border hover:bg-background absolute bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full p-1 shadow-md ring-1"
-      onClick={() => scrollToBottom()}
-      aria-label="Scroll to bottom"
-    >
-      <ArrowDownCircle className="h-7 w-7" />
-    </button>
-  );
-}
