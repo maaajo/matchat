@@ -17,10 +17,10 @@
 - [x] When aborted we should not send the previous response id but have the one
       that succeeded?
       {{"errorCode":400,"errorMessage":"Previous response with id 'resp_68bfe4292dc081939d6b03fbf7705bf7006fffc95e9d1bc2' not found.","status":"error","timestamp":"2025-09-09T08:26:05.127Z"}}
-- [ ] Add model name to the chat message message
 - [ ] The chat container should be scrollable area
 - [ ] Use use-stick-to-bottom for smooth scrolling when loading
 - [ ] Add scroll button in the chat container being rendered
+- [ ] Add model name to the chat message message
 - [ ] When new chat starts we should assign new id and change route
 - [ ] Add sidebar with past chats
 - [ ] Add model change

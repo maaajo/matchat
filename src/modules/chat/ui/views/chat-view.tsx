@@ -101,20 +101,37 @@ export const ChatView = ({ userName }: ChatViewProps) => {
         previous_response_id: chat.getLastResponseId(),
       },
       {
-        onError: () => {},
-        onSettled: (dataResult, error) => {
+        onSuccess: dataResult => {
           setMessages(prev =>
             prev.map(msg =>
               msg.id === assistantId
                 ? {
                     ...msg,
-                    content: dataResult?.finalText || "",
+                    content: dataResult.finalText,
                     isLoading: false,
-                    error: !!error,
-                    errorMessage: error?.message,
-                    responseId: chat.getLastResponseId() || "",
-                    aborted: dataResult?.aborted,
-                    abortReason: chat.getAbortReason() || "",
+                    error: false,
+                    responseId: dataResult.responseId ?? "",
+                    aborted: dataResult.aborted ?? false,
+                    abortReason: dataResult.abortReason ?? "",
+                  }
+                : msg,
+            ),
+          );
+          pendingAssistantIdRef.current = null;
+        },
+        onError: error => {
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === assistantId
+                ? {
+                    ...msg,
+                    content: chat.getLastStreamedTextPart() || "",
+                    isLoading: false,
+                    error: true,
+                    errorMessage: error.message,
+                    responseId: chat.getLastResponseId() ?? "",
+                    aborted: false,
+                    abortReason: "",
                   }
                 : msg,
             ),
