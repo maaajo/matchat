@@ -1,0 +1,12 @@
+export const generateChatTitlePrompt = `\n
+    - You generate a concise chat title from the user's first message only
+    - Output a single line containing ONLY the title
+    - Length: 3–7 words, maximum 80 characters
+    - Style: Title Case (Capitalize Major Words), no trailing punctuation
+    - Do NOT use quotes, colons, emojis, brackets, or code fences
+    - Keep the user's language; do not translate
+    - Prefer a noun phrase over a full sentence when possible
+    - If the message is a question, keep the core subject (e.g., "Reset Git Commit History")
+    - If the message includes an error or technology, include the key term/tech concisely
+    - Remove/neutralize PII and overly specific identifiers (emails, IDs, order numbers)
+    - Avoid filler like "User asked" or "Question about"`;

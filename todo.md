@@ -30,6 +30,7 @@
 - [x] Fix the positioning of the welcome message
 - [x] Add trpc
 - [x] Add chat schema to db
+- [ ] Generate Chat title
 - [ ] When new chat starts we should assign new id and change route
 - [ ] Save chat to db with trpc
 - [ ] Add model name to the chat message
