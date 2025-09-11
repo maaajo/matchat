@@ -43,7 +43,7 @@ export const generateChatTitle = async (
 
   const response = await openai.responses.parse({
     instructions: generateChatTitlePrompt,
-    model: "gpt-5-nano",
+    model: "gpt-4.1-nano",
     input,
     text: {
       format: zodTextFormat(generateChatTitleOutputSchema, "title"),
