@@ -71,13 +71,13 @@ export const ChatView = ({ userName }: ChatViewProps) => {
     mode: "onSubmit",
   });
 
-  const chat = useStreamMutation();
+  const streamChat = useStreamMutation();
 
   const isFormValid = form.formState.isDirty && form.formState.isValid;
 
-  const createChat = useMutation(trpc.chat.create.mutationOptions());
+  const insertChatToDB = useMutation(trpc.chat.create.mutationOptions());
 
-  const onSubmit = async (data: ChatMessageFormData) => {
+  const onSubmit = (data: ChatMessageFormData) => {
     const userId = nanoid();
     const assistantId = nanoid();
 
@@ -97,16 +97,20 @@ export const ChatView = ({ userName }: ChatViewProps) => {
       },
     ]);
 
-    const createdChat = await createChat.mutateAsync(data.message);
-
-    window.history.replaceState({}, "", `/chat/${createChat.data?.id}`);
+    if (!streamChat.getLastResponseId()) {
+      insertChatToDB.mutateAsync(data.message, {
+        onSuccess: data => {
+          window.history.replaceState({}, "", `/chat/${data.id}`);
+        },
+      });
+    }
 
     pendingAssistantIdRef.current = assistantId;
 
-    chat.mutate(
+    streamChat.mutateAsync(
       {
         input: data.message,
-        previous_response_id: chat.getLastResponseId(),
+        previous_response_id: streamChat.getLastResponseId(),
       },
       {
         onSuccess: dataResult => {
@@ -133,11 +137,11 @@ export const ChatView = ({ userName }: ChatViewProps) => {
               msg.id === assistantId
                 ? {
                     ...msg,
-                    content: chat.getLastStreamedTextPart() || "",
+                    content: streamChat.getLastStreamedTextPart() || "",
                     isLoading: false,
                     error: true,
                     errorMessage: error.message,
-                    responseId: chat.getLastResponseId() ?? "",
+                    responseId: streamChat.getLastResponseId() ?? "",
                     aborted: false,
                     abortReason: "",
                   }
@@ -220,9 +224,11 @@ export const ChatView = ({ userName }: ChatViewProps) => {
           <>
             {messages.map(msg => {
               const isStreaming = msg.id === pendingAssistantIdRef.current;
-              const content = isStreaming ? chat.streamedText : msg.content;
+              const content = isStreaming
+                ? streamChat.streamedText
+                : msg.content;
               const loading = isStreaming
-                ? chat.isPending && chat.streamedText.length === 0
+                ? streamChat.isPending && streamChat.streamedText.length === 0
                 : false;
 
               return (
@@ -283,7 +289,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                               {...field}
                               onKeyDown={e =>
                                 handleKeyDown(e, {
-                                  isChatPending: chat.isPending,
+                                  isChatPending: streamChat.isPending,
                                   isFormValid,
                                 })
                               }
@@ -296,11 +302,13 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                         <div className="flex justify-end">
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              {chat.isPending ? (
+                              {streamChat.isPending ? (
                                 <Button
                                   type="button"
                                   onClick={() =>
-                                    chat.abort("Generation aborted by the user")
+                                    streamChat.abort(
+                                      "Generation aborted by the user",
+                                    )
                                   }
                                   className="cursor-pointer"
                                 >
@@ -321,7 +329,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                             <TooltipContent side="top" sideOffset={0}>
                               {getButtonTooltipContent({
                                 isFormValid,
-                                isChatPending: chat.isPending,
+                                isChatPending: streamChat.isPending,
                               })}
                             </TooltipContent>
                           </Tooltip>
