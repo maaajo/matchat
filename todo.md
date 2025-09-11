@@ -123,6 +123,8 @@ Client: `ChatView` behavior
     immediately start `useStreamMutation` with `{ input }`.
   - While create is pending, disable the submit button and show loading states.
   - Abort/stop control is hidden until streaming becomes active.
+  - When chat title is returned change the page title - for that create custom
+    hook to change page title client side
 - [ ] Submit flow on `/chat/[chatId]`
   - For direct visits, no auto-start; user types and starts streaming via the
     same `useStreamMutation`.
