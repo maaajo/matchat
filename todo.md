@@ -26,10 +26,19 @@
 - [x] The scrollable area should be the entire page
 - [x] The messages should appear as they are rendered behind the Section with
       TextArea
-- [ ] Fix the positioning of the scroll to bottom button
-- [ ] Fix the positioning of the welcome message
-- [ ] Add model name to the chat message message
+- [x] Fix the positioning of the scroll to bottom button
+- [x] Fix the positioning of the welcome message
+- [x] Add trpc
+- [x] Add chat schema to db
 - [ ] When new chat starts we should assign new id and change route
+- [ ] Save chat to db with trpc
+- [ ] Add model name to the chat message
+- [ ] Add date to chat message?
+- [ ] Add start new chat
+- [ ] Make the button whn stream is generating pulsating
+- [ ] Add sidebar
+- [ ] Add prompt library
+- [ ] Add db for chat, messages
 - [ ] Add sidebar with past chats
 - [ ] Add model change
 - [ ] Add chat message actions
