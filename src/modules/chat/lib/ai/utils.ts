@@ -13,13 +13,30 @@ const generateChatTitleOutputSchema = z.object({
   title: z.string().min(1).max(80),
 });
 
-export const generateChatTitle = async (input: ChatInputContent) => {
+type GenerateChatTitleSuccessResponse = {
+  error: false;
+  title: string;
+  errorMessage?: never;
+};
+
+type GenerateChatTitleErrorResponse = {
+  error: true;
+  title?: never;
+  errorMessage: string;
+};
+
+export const generateChatTitle = async (
+  input: ChatInputContent,
+): Promise<
+  GenerateChatTitleSuccessResponse | GenerateChatTitleErrorResponse
+> => {
   const parsed = await chatInputContentSchema.safeParseAsync(input);
 
   if (!parsed.success) {
-    throw new Error(
-      `Invalid input for title generation, error: ${parsed.error?.toString()}`,
-    );
+    return {
+      error: true,
+      errorMessage: `Invalid input for title generation, error: ${parsed.error?.toString()}`,
+    };
   }
 
   const openai = new OpenAI();
@@ -34,19 +51,21 @@ export const generateChatTitle = async (input: ChatInputContent) => {
   });
 
   if (response.error) {
-    throw new Error("Couldn't generate chat title", {
-      cause: response.error.message,
-    });
+    return {
+      error: true,
+      errorMessage: `Couldn't generate chat title, error: ${response.error.message}`,
+    };
   }
 
   if (!response.output_parsed) {
-    throw new Error(
-      "Structured output not available from chat title generation",
-      {
-        cause: "Structured output missing",
-      },
-    );
+    return {
+      error: true,
+      errorMessage: `Structured output not available`,
+    };
   }
 
-  return response.output_parsed.title;
+  return {
+    title: response.output_parsed.title,
+    error: false,
+  };
 };

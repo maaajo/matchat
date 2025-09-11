@@ -71,7 +71,7 @@ Architecture overview
 
 Server utilities
 
-- [ ] Extract shared title helper `src/modules/chat/lib/ai/title.ts`
+- [x] Extract shared title helper `src/modules/chat/lib/ai/title.ts`
   - Implement `generateChatTitle(input: string): Promise<string>` using OpenAI
     and the existing `generateChatTitlePrompt`.
   - Use `zod` to parse/validate the LLM output. Derive the return type from the
@@ -84,7 +84,7 @@ Server utilities
 
 TRPC API
 
-- [ ] Update `chatCreateSchema` to `{ input: string }` and derive title inside
+- [x] Update `chatCreateSchema` to `{ input: string }` and derive title inside
       mutation
   - Validate minimum length and trim on input.
   - Title is generated server-side using the shared helper.
@@ -94,7 +94,7 @@ TRPC API
 
 OpenAI streaming route cleanup
 
-- [ ] Refactor `src/app/api/chat-openai/route.ts`
+- [x] Refactor `src/app/api/chat-openai/route.ts`
   - Remove any title-generation logic from this route. It should only handle
     streaming.
   - Ensure existing NDJSON contract remains unchanged (see
