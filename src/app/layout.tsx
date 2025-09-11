@@ -3,6 +3,7 @@ import { DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/app/providers";
+import { TRPCReactProvider } from "@/trpc/client";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -26,13 +27,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${jetBrainsMono.variable}`}>
-      <body className={`bg-background antialiased`}>
-        <Providers>
-          {children}
-          <Toaster position="top-center" />
-        </Providers>
-      </body>
-    </html>
+    <TRPCReactProvider>
+      <html
+        lang="en"
+        className={`${dmSans.variable} ${jetBrainsMono.variable}`}
+      >
+        <body className={`bg-background antialiased`}>
+          <Providers>
+            {children}
+            <Toaster position="top-center" />
+          </Providers>
+        </body>
+      </html>
+    </TRPCReactProvider>
   );
 }

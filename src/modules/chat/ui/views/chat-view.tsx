@@ -39,6 +39,8 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
+import { useMutation } from "@tanstack/react-query";
 
 type ChatViewProps = {
   userName?: string;
@@ -57,6 +59,7 @@ type ChatMessage = {
 };
 
 export const ChatView = ({ userName }: ChatViewProps) => {
+  const trpc = useTRPC();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const pendingAssistantIdRef = useRef<string | null>(null);
 
@@ -72,7 +75,9 @@ export const ChatView = ({ userName }: ChatViewProps) => {
 
   const isFormValid = form.formState.isDirty && form.formState.isValid;
 
-  const onSubmit = (data: ChatMessageFormData) => {
+  const createChat = useMutation(trpc.chat.create.mutationOptions());
+
+  const onSubmit = async (data: ChatMessageFormData) => {
     const userId = nanoid();
     const assistantId = nanoid();
 
@@ -91,6 +96,10 @@ export const ChatView = ({ userName }: ChatViewProps) => {
         isLoading: true,
       },
     ]);
+
+    const createdChat = await createChat.mutateAsync(data.message);
+
+    window.history.replaceState({}, "", `/chat/${createChat.data?.id}`);
 
     pendingAssistantIdRef.current = assistantId;
 
