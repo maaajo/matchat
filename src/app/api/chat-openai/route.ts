@@ -2,12 +2,40 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { StatusCodes } from "http-status-codes";
 import { headers } from "next/headers";
-import { chatInputSchema } from "@/app/api/chat-openai/schema";
+import { ChatInput, chatInputSchema } from "@/app/api/chat-openai/schema";
 import { ApiErrorResponse } from "@/lib/types/api-types";
 import { API_STATUSES } from "@/lib/types/api-types";
 import OpenAI from "openai";
+import { zodTextFormat } from "openai/helpers/zod";
 import { serverEnv } from "@/env/server";
 import { parseOpenAIError } from "@/lib/utils";
+import { z } from "zod";
+import { generateChatTitlePrompt } from "@/modules/chat/lib/ai/prompts";
+
+const generateChatTitle = async (input: ChatInput["input"]) => {
+  const Output = z.object({
+    title: z.string(),
+  });
+
+  const openai = new OpenAI();
+
+  const response = await openai.responses.parse({
+    instructions: generateChatTitlePrompt,
+    model: "gpt-5-nano",
+    input,
+    text: {
+      format: zodTextFormat(Output, "title"),
+    },
+  });
+
+  if (!response.output_parsed) {
+    throw new Error("Chat Title was not generated", {
+      cause: "Generate Title Issue",
+    });
+  }
+
+  return response.output_parsed.title;
+};
 
 export async function POST(
   req: NextRequest,
@@ -61,6 +89,11 @@ export async function POST(
   }
 
   const reqData = parseReqBody.data;
+
+  if (!reqData.previous_response_id) {
+    const title = await generateChatTitle(reqData.input);
+    console.log(title);
+  }
 
   const openai = new OpenAI();
 
