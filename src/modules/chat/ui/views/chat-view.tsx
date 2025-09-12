@@ -105,10 +105,19 @@ export const ChatView = ({ userName }: ChatViewProps) => {
 
     if (!didInsertChatRef.current && createdChatIdRef.current) {
       didInsertChatRef.current = true;
-      insertChatToDB.mutateAsync({
-        id: createdChatIdRef.current,
-        userChatMessage: userChat.message,
-      });
+      insertChatToDB.mutateAsync(
+        {
+          id: createdChatIdRef.current,
+          userChatMessage: userChat.message,
+        },
+        {
+          onSuccess: createdChat => {
+            if (createdChat?.title) {
+              document.title = `${createdChat.title} - ${config.appName}`;
+            }
+          },
+        },
+      );
     }
 
     pendingAssistantIdRef.current = assistantId;
