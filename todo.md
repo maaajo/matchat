@@ -34,6 +34,8 @@
 - [x] When new chat starts we should assign new id and change route
 - [x] Save chat to db with trpc
 - [x] Change page title when chat is there
+- [ ] Save messages and previous response id to db
+- [ ] Add chat id route
 - [ ] Show chat title as a floating pill on top
 - [ ] Add model name to the chat message
 - [ ] Add date to chat message?

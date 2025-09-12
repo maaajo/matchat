@@ -41,6 +41,7 @@ import {
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
 import { useMutation } from "@tanstack/react-query";
+import { Announcement, AnnouncementTitle } from "@/components/ui/accouncement";
 
 type ChatViewProps = {
   userName?: string;
@@ -61,6 +62,7 @@ type ChatMessage = {
 export const ChatView = ({ userName }: ChatViewProps) => {
   const trpc = useTRPC();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [chatTitle, setChatTitle] = useState<string | null>(null);
   const pendingAssistantIdRef = useRef<string | null>(null);
   const createdChatIdRef = useRef<string | null>(null);
   const didInsertChatRef = useRef(false);
@@ -112,6 +114,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
         },
         {
           onSuccess: createdChat => {
+            setChatTitle(createdChat?.title);
             if (createdChat?.title) {
               document.title = `${createdChat.title} - ${config.appName}`;
             }
@@ -214,7 +217,12 @@ export const ChatView = ({ userName }: ChatViewProps) => {
 
   return (
     <>
-      <ChatContainer className="flex w-full flex-col justify-start gap-y-2 px-4 pt-12">
+      <ChatContainer className="flex w-full flex-col items-center justify-start gap-y-2 px-4 pt-12">
+        {chatTitle ? (
+          <Announcement className="text-secondary-foreground bg-secondary shadow-secondary text-xs shadow-lg">
+            <AnnouncementTitle>{chatTitle}</AnnouncementTitle>
+          </Announcement>
+        ) : null}
         {messages.length === 0 ? (
           isFormValid ? (
             <div className="flex min-h-[calc(100dvh-theme(spacing.48)-theme(spacing.12))] flex-col items-center justify-center px-4 py-12">
