@@ -62,9 +62,7 @@ export const verification = pgTable("verification", {
 });
 
 export const chat = pgTable("chat", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => nanoid()),
+  id: text("id").primaryKey().notNull(),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   title: text("title").notNull(),
   userId: text("userId")

@@ -77,16 +77,19 @@ export const ChatView = ({ userName }: ChatViewProps) => {
 
   const insertChatToDB = useMutation(trpc.chat.create.mutationOptions());
 
-  const onSubmit = (data: ChatMessageFormData) => {
+  const onSubmit = (userChat: ChatMessageFormData) => {
     const userId = nanoid();
     const assistantId = nanoid();
+    const chatId = nanoid();
+
+    window.history.replaceState({}, "", `/chat/${chatId}`);
 
     setMessages(prev => [
       ...prev,
       {
         id: userId,
         variant: MESSAGE_VARIANTS.USER,
-        content: data.message,
+        content: userChat.message,
         isLoading: false,
       },
       {
@@ -98,10 +101,9 @@ export const ChatView = ({ userName }: ChatViewProps) => {
     ]);
 
     if (!streamChat.getLastResponseId()) {
-      insertChatToDB.mutateAsync(data.message, {
-        onSuccess: data => {
-          window.history.replaceState({}, "", `/chat/${data.id}`);
-        },
+      insertChatToDB.mutateAsync({
+        id: chatId,
+        userChatMessage: userChat.message,
       });
     }
 
@@ -109,7 +111,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
 
     streamChat.mutateAsync(
       {
-        input: data.message,
+        input: userChat.message,
         previous_response_id: streamChat.getLastResponseId(),
       },
       {
