@@ -62,6 +62,8 @@ export const ChatView = ({ userName }: ChatViewProps) => {
   const trpc = useTRPC();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const pendingAssistantIdRef = useRef<string | null>(null);
+  const createdChatIdRef = useRef<string | null>(null);
+  const didInsertChatRef = useRef(false);
 
   const form = useForm<ChatMessageFormData>({
     resolver: zodResolver(chatMessageSchema),
@@ -80,9 +82,10 @@ export const ChatView = ({ userName }: ChatViewProps) => {
   const onSubmit = (userChat: ChatMessageFormData) => {
     const userId = nanoid();
     const assistantId = nanoid();
-    const chatId = nanoid();
-
-    window.history.replaceState({}, "", `/chat/${chatId}`);
+    if (!createdChatIdRef.current) {
+      createdChatIdRef.current = nanoid();
+      window.history.replaceState({}, "", `/chat/${createdChatIdRef.current}`);
+    }
 
     setMessages(prev => [
       ...prev,
@@ -100,9 +103,10 @@ export const ChatView = ({ userName }: ChatViewProps) => {
       },
     ]);
 
-    if (!streamChat.getLastResponseId()) {
+    if (!didInsertChatRef.current && createdChatIdRef.current) {
+      didInsertChatRef.current = true;
       insertChatToDB.mutateAsync({
-        id: chatId,
+        id: createdChatIdRef.current,
         userChatMessage: userChat.message,
       });
     }
@@ -134,6 +138,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
           pendingAssistantIdRef.current = null;
         },
         onError: error => {
+          console.log("This is the error: " + error.message);
           setMessages(prev =>
             prev.map(msg =>
               msg.id === assistantId

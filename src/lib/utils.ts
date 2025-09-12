@@ -120,3 +120,9 @@ export function parseOpenAIError(error: Error): {
     errorMessage: cleanMessage || "Unknown error occurred",
   };
 }
+
+export function isAbort(error: unknown, signal?: AbortSignal | null): boolean {
+  const isDomAbort =
+    error instanceof DOMException && error.name === "AbortError";
+  return isDomAbort || Boolean(signal?.aborted);
+}
