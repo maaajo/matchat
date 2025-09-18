@@ -271,9 +271,10 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                 ? streamChat.streamedText
                 : msg.content;
               const loading = isStreaming
-                ? msg.isLoading ||
-                  (streamChat.isPending && streamChat.streamedText.length === 0)
+                ? streamChat.isPending && streamChat.streamedText.length === 0
                 : false;
+
+              console.log(isStreaming, loading);
 
               return (
                 <ChatMessage
