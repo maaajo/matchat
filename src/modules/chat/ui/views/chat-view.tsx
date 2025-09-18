@@ -80,10 +80,13 @@ export const ChatView = ({ userName }: ChatViewProps) => {
   const isFormValid = form.formState.isDirty && form.formState.isValid;
 
   const insertChatToDB = useMutation(trpc.chat.create.mutationOptions());
+  const insertMessageToDB = useMutation(trpc.message.add.mutationOptions());
 
-  const onSubmit = (userChat: ChatMessageFormData) => {
+  const onSubmit = async (userChat: ChatMessageFormData) => {
     const userId = nanoid();
     const assistantId = nanoid();
+    const userMessageDate = new Date();
+
     if (!createdChatIdRef.current) {
       createdChatIdRef.current = nanoid();
       window.history.replaceState({}, "", `/chat/${createdChatIdRef.current}`);
@@ -105,24 +108,6 @@ export const ChatView = ({ userName }: ChatViewProps) => {
       },
     ]);
 
-    if (!didInsertChatRef.current && createdChatIdRef.current) {
-      didInsertChatRef.current = true;
-      insertChatToDB.mutateAsync(
-        {
-          id: createdChatIdRef.current,
-          userChatMessage: userChat.message,
-        },
-        {
-          onSuccess: createdChat => {
-            setChatTitle(createdChat?.title);
-            if (createdChat?.title) {
-              document.title = `${createdChat.title} - ${config.appName}`;
-            }
-          },
-        },
-      );
-    }
-
     pendingAssistantIdRef.current = assistantId;
 
     streamChat.mutateAsync(
@@ -132,6 +117,23 @@ export const ChatView = ({ userName }: ChatViewProps) => {
       },
       {
         onSuccess: dataResult => {
+          insertMessageToDB.mutateAsync([
+            {
+              chatId: createdChatIdRef.current!,
+              content: userChat.message,
+              role: MESSAGE_VARIANTS.USER,
+              aborted: !!dataResult.aborted,
+              abortedReason: dataResult.abortReason,
+              createdAt: userMessageDate.toISOString(),
+            },
+            {
+              chatId: createdChatIdRef.current!,
+              content: dataResult.finalText,
+              role: MESSAGE_VARIANTS.ASSISTANT,
+              aborted: false,
+              createdAt: new Date(userMessageDate.getTime() + 1).toISOString(),
+            },
+          ]);
           setMessages(prev =>
             prev.map(msg =>
               msg.id === assistantId
@@ -150,7 +152,6 @@ export const ChatView = ({ userName }: ChatViewProps) => {
           pendingAssistantIdRef.current = null;
         },
         onError: error => {
-          console.log("This is the error: " + error.message);
           setMessages(prev =>
             prev.map(msg =>
               msg.id === assistantId
@@ -171,6 +172,24 @@ export const ChatView = ({ userName }: ChatViewProps) => {
         },
       },
     );
+
+    if (!didInsertChatRef.current && createdChatIdRef.current) {
+      didInsertChatRef.current = true;
+      try {
+        const createdChat = await insertChatToDB.mutateAsync({
+          id: createdChatIdRef.current,
+          userChatMessage: userChat.message,
+        });
+        setChatTitle(createdChat?.title ?? null);
+        if (createdChat?.title) {
+          document.title = `${createdChat.title} - ${config.appName}`;
+        }
+      } catch {
+        didInsertChatRef.current = false;
+        toast.error("Failed to create chat");
+        return;
+      }
+    }
 
     form.reset();
   };
@@ -252,7 +271,8 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                 ? streamChat.streamedText
                 : msg.content;
               const loading = isStreaming
-                ? streamChat.isPending && streamChat.streamedText.length === 0
+                ? msg.isLoading ||
+                  (streamChat.isPending && streamChat.streamedText.length === 0)
                 : false;
 
               return (

@@ -6,6 +6,7 @@ import {
   pgEnum,
   json,
 } from "drizzle-orm/pg-core";
+import { nanoid } from "nanoid";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -76,15 +77,22 @@ export const chat = pgTable("chat", {
     .references(() => user.id, { onDelete: "cascade" }),
 });
 
-const messageRole = pgEnum("role", ["user", "assistant", "system"]);
+export const messageRole = pgEnum("role", ["user", "assistant", "system"]);
 
 export const message = pgTable("message", {
-  id: text("id").primaryKey().notNull(),
+  id: text("id")
+    .primaryKey()
+    .notNull()
+    .$defaultFn(() => nanoid()),
   chatId: text("chatId")
     .notNull()
     .references(() => chat.id, { onDelete: "cascade" }),
   role: messageRole("role").notNull(),
   content: text("content").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .$defaultFn(() => new Date()),
   attachments: json("attachments"),
+  aborted: boolean("aborted").notNull(),
+  abortedReason: text("aborted_reason"),
 });
