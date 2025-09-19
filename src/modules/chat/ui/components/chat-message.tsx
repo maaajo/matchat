@@ -7,6 +7,18 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { type ComponentProps, createContext, useContext } from "react";
 import { MESSAGE_VARIANTS } from "@/modules/chat/lib/constants";
 
+export type UIChatMessage = {
+  id: string;
+  variant: (typeof MESSAGE_VARIANTS)[keyof typeof MESSAGE_VARIANTS];
+  content: string;
+  isLoading?: boolean;
+  responseId?: string;
+  error?: boolean;
+  errorMessage?: string;
+  aborted?: boolean;
+  abortReason?: string;
+};
+
 type ChatMessageContextValue = {
   variant: (typeof MESSAGE_VARIANTS)[keyof typeof MESSAGE_VARIANTS];
   userName?: string;

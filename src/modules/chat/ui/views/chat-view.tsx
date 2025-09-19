@@ -23,6 +23,7 @@ import { Card } from "@/components/ui/card";
 import { ChatContainer } from "@/modules/chat/ui/components/chat-container";
 import { KeyboardEvent, useRef, useState } from "react";
 import {
+  UIChatMessage,
   ChatMessage,
   ChatMessageContent,
   ChatMessageAuthor,
@@ -40,32 +41,32 @@ import {
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
 import { useMutation } from "@tanstack/react-query";
-import { Announcement, AnnouncementTitle } from "@/components/ui/accouncement";
+import { Announcement, AnnouncementTitle } from "@/components/ui/announcement";
 import { MESSAGE_VARIANTS } from "@/modules/chat/lib/constants";
 
 type ChatViewProps = {
   userName?: string;
+  chatId?: string;
+  initialTitle?: string | null;
+  chatMessages?: UIChatMessage[];
+  lastValidResponseId?: string | null;
 };
 
-type ChatMessage = {
-  id: string;
-  variant: (typeof MESSAGE_VARIANTS)[keyof typeof MESSAGE_VARIANTS];
-  content: string;
-  isLoading?: boolean;
-  responseId?: string;
-  error?: boolean;
-  errorMessage?: string;
-  aborted?: boolean;
-  abortReason?: string;
-};
-
-export const ChatView = ({ userName }: ChatViewProps) => {
+export const ChatView = ({
+  userName,
+  chatId,
+  initialTitle,
+  chatMessages,
+  lastValidResponseId,
+}: ChatViewProps) => {
   const trpc = useTRPC();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [chatTitle, setChatTitle] = useState<string | null>(null);
+  const [messages, setMessages] = useState<UIChatMessage[]>(chatMessages ?? []);
+  const [chatTitle, setChatTitle] = useState<string | null>(
+    initialTitle ?? null,
+  );
   const pendingAssistantIdRef = useRef<string | null>(null);
   const createdChatIdRef = useRef<string | null>(null);
-  const didInsertChatRef = useRef(false);
+  const isExistingChat = !!chatId;
 
   const form = useForm<ChatMessageFormData>({
     resolver: zodResolver(chatMessageSchema),
@@ -88,10 +89,11 @@ export const ChatView = ({ userName }: ChatViewProps) => {
     const assistantId = nanoid();
     const userMessageDate = new Date();
 
-    if (!createdChatIdRef.current) {
-      createdChatIdRef.current = nanoid();
-      window.history.replaceState({}, "", `/chat/${createdChatIdRef.current}`);
+    const resolvedChatId = chatId ?? createdChatIdRef.current ?? nanoid();
+    if (!isExistingChat && !createdChatIdRef.current) {
+      window.history.replaceState({}, "", `/chat/${resolvedChatId}`);
     }
+    createdChatIdRef.current = resolvedChatId;
 
     setMessages(prev => [
       ...prev,
@@ -114,7 +116,8 @@ export const ChatView = ({ userName }: ChatViewProps) => {
     streamChat.mutateAsync(
       {
         input: userChat.message,
-        previous_response_id: streamChat.getLastResponseId(),
+        previous_response_id:
+          streamChat.getLastResponseId() ?? lastValidResponseId ?? undefined,
       },
       {
         onSuccess: dataResult => {
@@ -178,8 +181,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
       },
     );
 
-    if (!didInsertChatRef.current && createdChatIdRef.current) {
-      didInsertChatRef.current = true;
+    if (!isExistingChat && chatTitle === null && createdChatIdRef.current) {
       try {
         const createdChat = await insertChatToDB.mutateAsync({
           id: createdChatIdRef.current,
@@ -190,7 +192,6 @@ export const ChatView = ({ userName }: ChatViewProps) => {
           document.title = `${createdChat.title} - ${config.appName}`;
         }
       } catch {
-        didInsertChatRef.current = false;
         toast.error("Failed to create chat");
         return;
       }

@@ -1,6 +1,7 @@
 import {
   chatCreateInputSchema,
   chatDeleteInputSchema,
+  chatGetOneInputSchema,
   chatUpdateInputSchema,
   messageAddInputSchema,
 } from "@/modules/chat/schemas/procedures-schemas";
@@ -9,10 +10,32 @@ import { chat, message } from "@/db/schema";
 import { generateChatTitle } from "@/modules/chat/lib/ai/utils";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 export const chatRouter = createTRPCRouter({
+  getOne: protectedProcedure
+    .input(chatGetOneInputSchema)
+    .query(async ({ input, ctx }) => {
+      const rows = await db
+        .select()
+        .from(chat)
+        .leftJoin(message, eq(message.chatId, chat.id))
+        .where(and(eq(chat.id, input.id), eq(chat.userId, ctx.auth.user.id)))
+        .orderBy(asc(message.createdAt));
+
+      const selectedChat = rows[0]?.chat;
+
+      if (!selectedChat) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Chat not found" });
+      }
+
+      const messages = rows
+        .map(r => r.message)
+        .filter(message => message !== null);
+
+      return { ...selectedChat, messages };
+    }),
   create: protectedProcedure
     .input(chatCreateInputSchema)
     .mutation(async ({ input, ctx }) => {

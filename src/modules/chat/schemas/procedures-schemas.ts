@@ -10,6 +10,10 @@ export const chatCreateInputSchema = z.object({
 
 export type ChatCreateInput = z.infer<typeof chatCreateInputSchema>;
 
+export const chatGetOneInputSchema = z.object({
+  id: z.string().min(1, "id is required"),
+});
+
 export const chatDeleteInputSchema = z.object({
   id: z.string().min(1, "id is required"),
 });

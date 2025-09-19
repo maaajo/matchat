@@ -35,9 +35,9 @@
 - [x] Save chat to db with trpc
 - [x] Change page title when chat is there
 - [x] Save messages to db
-- [x] Add chat id route
 - [x] Show chat title as a floating pill on top
-- [ ] Save last valid previous response id
+- [x] Save last valid previous response id
+- [ ] Add chat id route
 - [ ] Add model name to the chat message
 - [ ] Add date to chat message?
 - [ ] Add start new chat
