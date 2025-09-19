@@ -10,6 +10,7 @@ import { generateChatTitle } from "@/modules/chat/lib/ai/utils";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
+import { z } from "zod";
 
 export const chatRouter = createTRPCRouter({
   create: protectedProcedure
@@ -60,12 +61,36 @@ export const chatRouter = createTRPCRouter({
   update: protectedProcedure
     .input(chatUpdateInputSchema)
     .mutation(async ({ input, ctx }) => {
+      const valuesToUpdate: Omit<
+        z.infer<typeof chatUpdateInputSchema>,
+        "id"
+      > = {};
+
+      if (input.lastValidResponseId !== undefined) {
+        valuesToUpdate.lastValidResponseId = input.lastValidResponseId;
+      }
+
+      if (input.title !== undefined) {
+        valuesToUpdate.title = input.title;
+      }
+
+      if (
+        input.userChatMessage !== undefined &&
+        input.userChatMessage.length !== 0
+      ) {
+        valuesToUpdate.userChatMessage = input.userChatMessage;
+      }
+
+      if (Object.keys(valuesToUpdate).length === 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No fields to update provided",
+        });
+      }
+
       const [updatedChat] = await db
         .update(chat)
-        .set({
-          lastValidResponseId: input.lastValidResponseId,
-          title: input.title,
-        })
+        .set(valuesToUpdate)
         .where(and(eq(chat.id, input.id), eq(chat.userId, ctx.auth.user.id)))
         .returning();
 

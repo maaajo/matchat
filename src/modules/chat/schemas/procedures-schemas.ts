@@ -16,7 +16,7 @@ export const chatDeleteInputSchema = z.object({
 
 export const chatUpdateInputSchema = z.object({
   id: z.string().min(1, "id is required"),
-  userChatMessage: chatInputContentSchema,
+  userChatMessage: chatInputContentSchema.optional(),
   lastValidResponseId: z.string().optional(),
   title: z.string().optional(),
 });
