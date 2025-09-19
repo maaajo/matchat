@@ -26,7 +26,6 @@ import {
   ChatMessage,
   ChatMessageContent,
   ChatMessageAuthor,
-  MESSAGE_VARIANTS,
   ChatMessageError,
 } from "@/modules/chat/ui/components/chat-message";
 import { Loader } from "@/components/ui/loader";
@@ -42,6 +41,7 @@ import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
 import { useMutation } from "@tanstack/react-query";
 import { Announcement, AnnouncementTitle } from "@/components/ui/accouncement";
+import { MESSAGE_VARIANTS } from "@/modules/chat/lib/constants";
 
 type ChatViewProps = {
   userName?: string;
@@ -270,11 +270,9 @@ export const ChatView = ({ userName }: ChatViewProps) => {
               const content = isStreaming
                 ? streamChat.streamedText
                 : msg.content;
-              const loading = isStreaming
+              const isLoading = isStreaming
                 ? streamChat.isPending && streamChat.streamedText.length === 0
                 : false;
-
-              console.log(isStreaming, loading);
 
               return (
                 <ChatMessage
@@ -288,7 +286,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                       : config.appName}
                   </ChatMessageAuthor>
                   <ChatMessageContent>
-                    {loading ? (
+                    {isLoading ? (
                       <div className="flex items-center gap-x-2">
                         <Loader variant="dots" size="lg" />
                       </div>
@@ -347,7 +345,8 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                         <div className="flex justify-end">
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              {streamChat.isPending ? (
+                              {streamChat.isPending &&
+                              !insertChatToDB.isPending ? (
                                 <Button
                                   type="button"
                                   onClick={() =>
@@ -363,7 +362,10 @@ export const ChatView = ({ userName }: ChatViewProps) => {
                               ) : (
                                 <Button
                                   type="submit"
-                                  disabled={!isFormValid}
+                                  disabled={
+                                    !isFormValid || insertChatToDB.isPending
+                                  }
+                                  isLoading={insertChatToDB.isPending}
                                   className={`${!isFormValid ? "cursor-not-allowed" : "cursor-pointer"}`}
                                 >
                                   <SendIcon />

@@ -7,6 +7,7 @@ import {
   json,
 } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
+import { MESSAGE_VARIANTS } from "@/modules/chat/lib/constants";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -75,9 +76,14 @@ export const chat = pgTable("chat", {
   userId: text("userId")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
+  lastValidResponseId: text("last_valid_response_id"),
 });
 
-export const messageRole = pgEnum("role", ["user", "assistant", "system"]);
+export const messageRole = pgEnum("role", [
+  MESSAGE_VARIANTS.USER,
+  MESSAGE_VARIANTS.ASSISTANT,
+  MESSAGE_VARIANTS.SYSTEM,
+]);
 
 export const message = pgTable("message", {
   id: text("id")

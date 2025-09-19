@@ -1,6 +1,7 @@
 import {
   chatCreateInputSchema,
   chatDeleteInputSchema,
+  chatUpdateInputSchema,
   messageAddInputSchema,
 } from "@/modules/chat/schemas/procedures-schemas";
 import { db } from "@/db";
@@ -8,7 +9,7 @@ import { chat, message } from "@/db/schema";
 import { generateChatTitle } from "@/modules/chat/lib/ai/utils";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 export const chatRouter = createTRPCRouter({
   create: protectedProcedure
@@ -31,6 +32,7 @@ export const chatRouter = createTRPCRouter({
           title: generateChatTitleResponse.title,
           userId: ctx.auth.user.id,
           id: input.id,
+          lastValidResponseId: input.lastValidResponseId,
         })
         .returning();
 
@@ -54,6 +56,24 @@ export const chatRouter = createTRPCRouter({
       if (!deletedChat) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Chat not found" });
       }
+    }),
+  update: protectedProcedure
+    .input(chatUpdateInputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const [updatedChat] = await db
+        .update(chat)
+        .set({
+          lastValidResponseId: input.lastValidResponseId,
+          title: input.title,
+        })
+        .where(and(eq(chat.id, input.id), eq(chat.userId, ctx.auth.user.id)))
+        .returning();
+
+      if (!updatedChat) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Chat not found" });
+      }
+
+      return updatedChat;
     }),
 });
 

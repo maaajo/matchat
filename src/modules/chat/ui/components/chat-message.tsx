@@ -5,11 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { type ComponentProps, createContext, useContext } from "react";
-
-const MESSAGE_VARIANTS = {
-  USER: "user",
-  ASSISTANT: "assistant",
-} as const;
+import { MESSAGE_VARIANTS } from "@/modules/chat/lib/constants";
 
 type ChatMessageContextValue = {
   variant: (typeof MESSAGE_VARIANTS)[keyof typeof MESSAGE_VARIANTS];
@@ -153,10 +149,4 @@ const ChatMessageError = ({
   );
 };
 
-export {
-  MESSAGE_VARIANTS,
-  ChatMessage,
-  ChatMessageContent,
-  ChatMessageAuthor,
-  ChatMessageError,
-};
+export { ChatMessage, ChatMessageContent, ChatMessageAuthor, ChatMessageError };
