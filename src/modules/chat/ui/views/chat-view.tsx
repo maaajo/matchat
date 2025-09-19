@@ -65,8 +65,8 @@ export const ChatView = ({
     initialTitle ?? null,
   );
   const pendingAssistantIdRef = useRef<string | null>(null);
-  const createdChatIdRef = useRef<string | null>(null);
-  const isExistingChat = !!chatId;
+  const createdChatIdRef = useRef<string | null>(chatId ?? null);
+  const isExistingChat = !!createdChatIdRef.current;
 
   const form = useForm<ChatMessageFormData>({
     resolver: zodResolver(chatMessageSchema),
@@ -85,15 +85,10 @@ export const ChatView = ({
   const updateChatDB = useMutation(trpc.chat.update.mutationOptions());
 
   const onSubmit = async (userChat: ChatMessageFormData) => {
+    form.reset();
+
     const userId = nanoid();
     const assistantId = nanoid();
-    const userMessageDate = new Date();
-
-    const resolvedChatId = chatId ?? createdChatIdRef.current ?? nanoid();
-    if (!isExistingChat && !createdChatIdRef.current) {
-      window.history.replaceState({}, "", `/chat/${resolvedChatId}`);
-    }
-    createdChatIdRef.current = resolvedChatId;
 
     setMessages(prev => [
       ...prev,
@@ -111,6 +106,32 @@ export const ChatView = ({
       },
     ]);
 
+    if (!isExistingChat && !createdChatIdRef.current) {
+      const newChatId = nanoid();
+      try {
+        const newChat = await insertChatToDB.mutateAsync({
+          id: newChatId,
+          userChatMessage: userChat.message,
+        });
+        setChatTitle(newChat.title);
+
+        createdChatIdRef.current = newChatId;
+        window.history.replaceState(null, "", `/chat/${newChatId}`);
+      } catch (error) {
+        toast.error(
+          "Failed to start a new chat. Please try again, error: " + error,
+        );
+        return;
+      }
+    }
+
+    if (!createdChatIdRef.current) {
+      toast.error("Chat ID is missing. Cannot send message.");
+      return;
+    }
+
+    const userMessageDate = new Date();
+
     pendingAssistantIdRef.current = assistantId;
 
     streamChat.mutateAsync(
@@ -126,15 +147,15 @@ export const ChatView = ({
               chatId: createdChatIdRef.current!,
               content: userChat.message,
               role: MESSAGE_VARIANTS.USER,
-              aborted: !!dataResult.aborted,
-              abortedReason: dataResult.abortReason,
+              aborted: false,
               createdAt: userMessageDate.toISOString(),
             },
             {
               chatId: createdChatIdRef.current!,
               content: dataResult.finalText,
               role: MESSAGE_VARIANTS.ASSISTANT,
-              aborted: false,
+              aborted: !!dataResult.aborted,
+              abortedReason: dataResult.abortReason,
               createdAt: new Date(userMessageDate.getTime() + 1).toISOString(),
             },
           ]);
@@ -180,24 +201,6 @@ export const ChatView = ({
         },
       },
     );
-
-    if (!isExistingChat && chatTitle === null && createdChatIdRef.current) {
-      try {
-        const createdChat = await insertChatToDB.mutateAsync({
-          id: createdChatIdRef.current,
-          userChatMessage: userChat.message,
-        });
-        setChatTitle(createdChat?.title ?? null);
-        if (createdChat?.title) {
-          document.title = `${createdChat.title} - ${config.appName}`;
-        }
-      } catch {
-        toast.error("Failed to create chat");
-        return;
-      }
-    }
-
-    form.reset();
   };
 
   const handleKeyDown = (
@@ -276,9 +279,6 @@ export const ChatView = ({
               const content = isStreaming
                 ? streamChat.streamedText
                 : msg.content;
-              const isLoading = isStreaming
-                ? streamChat.isPending && streamChat.streamedText.length === 0
-                : false;
 
               return (
                 <ChatMessage
@@ -292,7 +292,7 @@ export const ChatView = ({
                       : config.appName}
                   </ChatMessageAuthor>
                   <ChatMessageContent>
-                    {isLoading ? (
+                    {msg.isLoading && !content ? (
                       <div className="flex items-center gap-x-2">
                         <Loader variant="dots" size="lg" />
                       </div>

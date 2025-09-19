@@ -37,7 +37,9 @@
 - [x] Save messages to db
 - [x] Show chat title as a floating pill on top
 - [x] Save last valid previous response id
-- [ ] Add chat id route
+- [x] Add chat id route
+- [ ] Chat title now is causing layout shift done. we shoudl show empty with
+      loading message and then render title when ready
 - [ ] Add model name to the chat message
 - [ ] Add date to chat message?
 - [ ] Add start new chat

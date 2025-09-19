@@ -25,8 +25,6 @@ export function ChatViewContainer({
     variant: message.role,
     content: message.content,
     isLoading: false,
-    error: message.aborted,
-    errorMessage: message.abortedReason ?? undefined,
     aborted: message.aborted,
     abortReason: message.abortedReason ?? undefined,
   }));
