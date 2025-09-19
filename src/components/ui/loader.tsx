@@ -144,9 +144,11 @@ export function PulseDotLoader({
 export function DotsLoader({
   className,
   size = "md",
+  color,
 }: {
   className?: string;
   size?: "sm" | "md" | "lg";
+  color?: string;
 }) {
   const dotSizes = {
     sm: "h-1.5 w-1.5",
@@ -172,8 +174,9 @@ export function DotsLoader({
         <div
           key={i}
           className={cn(
-            "bg-muted-foreground animate-[bounce-dots_1.4s_ease-in-out_infinite] rounded-full",
+            "animate-[bounce-dots_1.4s_ease-in-out_infinite] rounded-full",
             dotSizes[size],
+            `${!color ? "bg-muted-foreground" : color}`,
           )}
           style={{
             animationDelay: `${i * 160}ms`,

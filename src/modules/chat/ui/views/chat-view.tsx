@@ -29,7 +29,7 @@ import {
   ChatMessageAuthor,
   ChatMessageError,
 } from "@/modules/chat/ui/components/chat-message";
-import { Loader } from "@/components/ui/loader";
+import { DotsLoader, Loader } from "@/components/ui/loader";
 import { useStreamMutation } from "@/hooks/use-stream-mutation";
 import { config } from "@/lib/config";
 import { nanoid } from "nanoid";
@@ -246,11 +246,20 @@ export const ChatView = ({
   return (
     <>
       <ChatContainer className="flex w-full flex-col items-center justify-start gap-y-2 px-4 pt-12">
-        {chatTitle ? (
+        {messages.length !== 0 ? (
           <Announcement className="text-secondary-foreground bg-secondary shadow-secondary text-xs shadow-lg">
-            <AnnouncementTitle>{chatTitle}</AnnouncementTitle>
+            <AnnouncementTitle>
+              {!chatTitle ? (
+                <div className="flex items-center gap-x-2">
+                  <DotsLoader size="lg" color="bg-primary-foreground" />
+                </div>
+              ) : (
+                chatTitle
+              )}
+            </AnnouncementTitle>
           </Announcement>
         ) : null}
+
         {messages.length === 0 ? (
           isFormValid ? (
             <div className="flex min-h-[calc(100dvh-theme(spacing.48)-theme(spacing.12))] flex-col items-center justify-center px-4 py-12">
