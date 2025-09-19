@@ -81,6 +81,7 @@ export const ChatView = ({ userName }: ChatViewProps) => {
 
   const insertChatToDB = useMutation(trpc.chat.create.mutationOptions());
   const insertMessageToDB = useMutation(trpc.message.add.mutationOptions());
+  const updateChatDB = useMutation(trpc.chat.update.mutationOptions());
 
   const onSubmit = async (userChat: ChatMessageFormData) => {
     const userId = nanoid();
@@ -134,6 +135,10 @@ export const ChatView = ({ userName }: ChatViewProps) => {
               createdAt: new Date(userMessageDate.getTime() + 1).toISOString(),
             },
           ]);
+          updateChatDB.mutateAsync({
+            id: createdChatIdRef.current!,
+            lastValidResponseId: dataResult.responseId,
+          });
           setMessages(prev =>
             prev.map(msg =>
               msg.id === assistantId
