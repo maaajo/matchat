@@ -8,20 +8,31 @@ import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 type ChatLayoutProps = Readonly<{
   children: ReactNode;
 }>;
 
+function FloatingTrigger() {
+  const { open } = useSidebar();
+
+  if (open) return null;
+
+  return (
+    <div className="fixed top-4 left-4 z-50">
+      <SidebarTrigger />
+    </div>
+  );
+}
+
 export default function ChatLayout({ children }: ChatLayoutProps) {
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <div className="flex items-center gap-2 px-4 py-2">
-          <SidebarTrigger />
-        </div>
+        <FloatingTrigger />
         <StickToBottom
           className="w-full flex-1"
           resize="smooth"

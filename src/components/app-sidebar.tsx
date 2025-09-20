@@ -6,9 +6,12 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 // Menu items.
@@ -43,6 +46,9 @@ const items = [
 export function AppSidebar() {
   return (
     <Sidebar>
+      <SidebarHeader>
+        <SidebarTrigger />
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Application</SidebarGroupLabel>
@@ -62,6 +68,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarRail />
     </Sidebar>
   );
 }
