@@ -328,7 +328,7 @@ export const ChatView = ({
         )}
       </ChatContainer>
 
-      <section className="fixed right-0 bottom-0 left-0 z-50">
+      <section className="fixed bottom-0 z-50 w-full">
         <div className="container mx-auto w-full max-w-5xl px-4 py-4 pt-2">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
