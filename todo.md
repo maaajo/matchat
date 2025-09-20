@@ -40,14 +40,14 @@
 - [x] Add chat id route
 - [x] Chat title now is causing layout shift done. we shoudl show empty with
       loading message and then render title when ready
+- [ ] Add sidebar
+- [ ] Add sidebar with past chats
 - [ ] Add model name to the chat message
 - [ ] Add date to chat message?
 - [ ] Add start new chat
 - [ ] Make the button whn stream is generating pulsating
-- [ ] Add sidebar
 - [ ] Add prompt library
 - [ ] Add db for chat, messages
-- [ ] Add sidebar with past chats
 - [ ] Add model change
 - [ ] Add chat message actions
 - [ ] Add pdf and image attachments

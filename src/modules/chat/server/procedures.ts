@@ -14,6 +14,14 @@ import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 export const chatRouter = createTRPCRouter({
+  getAllByUserId: protectedProcedure.query(async ({ ctx }) => {
+    const chats = await db
+      .select({ id: chat.id, title: chat.title })
+      .from(chat)
+      .where(eq(chat.userId, ctx.auth.user.id));
+
+    return chats;
+  }),
   getOne: protectedProcedure
     .input(chatGetOneInputSchema)
     .query(async ({ input, ctx }) => {
