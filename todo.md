@@ -42,10 +42,11 @@
       loading message and then render title when ready
 - [x] Add sidebar
 - [x] Add sidebar with past chats
-- [ ] Add is chat loading to the db
-- [ ] on chat insert set chat loading to true
-- [ ] on successfull generation of first message set isLoading to false
-- [ ] add this to the sidebar chats so they show it's loading
+- [x] Add is chat loading to the db
+- [x] on chat insert set chat loading to true
+- [x] on successfull generation of first message set isLoading to false
+- [x] add this to the sidebar chats so they show it's loading
+- [ ] check why isAtBottom is showing true always
 - [ ] Add skeletons for past chats
 - [ ] add x icon to chats so we you can remove them
 - [ ] show only 100 chats, if wanting more then show button to load more

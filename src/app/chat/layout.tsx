@@ -31,10 +31,10 @@ export default function ChatLayout({ children }: ChatLayoutProps) {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="h-svh">
         <FloatingTrigger />
         <StickToBottom
-          className="w-full flex-1"
+          className="min-h-0 w-full flex-1"
           resize="smooth"
           initial="smooth"
         >
