@@ -77,6 +77,7 @@ export const chat = pgTable("chat", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   lastValidResponseId: text("last_valid_response_id"),
+  isStreaming: boolean("is_streaming").default(false).notNull(),
 });
 
 export const messageRole = pgEnum("role", [

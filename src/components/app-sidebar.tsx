@@ -15,6 +15,8 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
+import { GetAllChatsOutput } from "@/modules/chat/server/types";
+import { Loader } from "@/components/ui/loader";
 
 // Menu items.
 const items = [
@@ -46,7 +48,7 @@ const items = [
 ];
 
 type SidebarChatMenuProps = {
-  data?: { id: string; title: string }[];
+  data?: GetAllChatsOutput;
   isLoading: boolean;
 };
 
@@ -64,8 +66,18 @@ const SidebarChatMenu = ({ data, isLoading }: SidebarChatMenuProps) => {
       {data.map(chat => {
         return (
           <SidebarMenuItem key={chat.id}>
-            <SidebarMenuButton asChild>
-              <Link href={`/chat/${chat.id}`}>{chat.title}</Link>
+            <SidebarMenuButton asChild className="px-2.5">
+              <Link
+                href={`/chat/${chat.id}`}
+                className="flex flex-row justify-between gap-x-2"
+              >
+                <span>{chat.title}</span>
+                {chat.isStreaming ? (
+                  <span>
+                    <Loader variant="circular" size="sm" />
+                  </span>
+                ) : null}
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         );

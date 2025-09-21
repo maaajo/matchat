@@ -6,6 +6,7 @@ export const chatCreateInputSchema = z.object({
   id: z.string().min(1, "id is required"),
   userChatMessage: chatInputContentSchema,
   lastValidResponseId: z.string().optional(),
+  isStreaming: z.boolean().default(false),
 });
 
 export type ChatCreateInput = z.infer<typeof chatCreateInputSchema>;
@@ -23,6 +24,7 @@ export const chatUpdateInputSchema = z.object({
   userChatMessage: chatInputContentSchema.optional(),
   lastValidResponseId: z.string().optional(),
   title: z.string().optional(),
+  isStreaming: z.boolean().default(false),
 });
 
 export const messageAddInputSchema = z.array(

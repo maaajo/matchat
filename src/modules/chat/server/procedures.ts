@@ -16,7 +16,7 @@ import { z } from "zod";
 export const chatRouter = createTRPCRouter({
   getAllByUserId: protectedProcedure.query(async ({ ctx }) => {
     const chats = await db
-      .select({ id: chat.id, title: chat.title })
+      .select({ id: chat.id, title: chat.title, isStreaming: chat.isStreaming })
       .from(chat)
       .where(eq(chat.userId, ctx.auth.user.id))
       .orderBy(desc(chat.createdAt))
@@ -67,6 +67,7 @@ export const chatRouter = createTRPCRouter({
           userId: ctx.auth.user.id,
           id: input.id,
           lastValidResponseId: input.lastValidResponseId,
+          isStreaming: input.isStreaming,
         })
         .returning();
 
@@ -97,7 +98,9 @@ export const chatRouter = createTRPCRouter({
       const valuesToUpdate: Omit<
         z.infer<typeof chatUpdateInputSchema>,
         "id"
-      > = {};
+      > = {
+        isStreaming: input.isStreaming,
+      };
 
       if (input.lastValidResponseId !== undefined) {
         valuesToUpdate.lastValidResponseId = input.lastValidResponseId;

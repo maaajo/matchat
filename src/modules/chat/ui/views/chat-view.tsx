@@ -113,6 +113,7 @@ export const ChatView = ({
         const newChat = await insertChatToDB.mutateAsync({
           id: newChatId,
           userChatMessage: userChat.message,
+          isStreaming: true,
         });
         setChatTitle(newChat.title);
 
@@ -125,6 +126,20 @@ export const ChatView = ({
         );
         return;
       }
+    } else {
+      updateChatDB.mutateAsync(
+        {
+          id: createdChatIdRef.current!,
+          isStreaming: true,
+        },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries(
+              trpc.chat.getAllByUserId.queryOptions(),
+            );
+          },
+        },
+      );
     }
 
     if (!createdChatIdRef.current) {
@@ -161,10 +176,20 @@ export const ChatView = ({
               createdAt: new Date(userMessageDate.getTime() + 1).toISOString(),
             },
           ]);
-          updateChatDB.mutateAsync({
-            id: createdChatIdRef.current!,
-            lastValidResponseId: dataResult.responseId,
-          });
+          updateChatDB.mutateAsync(
+            {
+              id: createdChatIdRef.current!,
+              lastValidResponseId: dataResult.responseId,
+              isStreaming: false,
+            },
+            {
+              onSuccess: () => {
+                queryClient.invalidateQueries(
+                  trpc.chat.getAllByUserId.queryOptions(),
+                );
+              },
+            },
+          );
           setMessages(prev =>
             prev.map(msg =>
               msg.id === assistantId
