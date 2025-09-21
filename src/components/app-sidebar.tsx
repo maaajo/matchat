@@ -1,4 +1,6 @@
 import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useTRPC } from "@/trpc/client";
 
 import {
   Sidebar,
@@ -10,9 +12,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import Link from "next/link";
 
 // Menu items.
 const items = [
@@ -43,32 +45,53 @@ const items = [
   },
 ];
 
+type SidebarChatMenuProps = {
+  data?: { id: string; title: string }[];
+  isLoading: boolean;
+};
+
+const SidebarChatMenu = ({ data, isLoading }: SidebarChatMenuProps) => {
+  if (!data) {
+    return null;
+  }
+
+  if (isLoading) {
+    return <p>Loading</p>;
+  }
+
+  return (
+    <SidebarMenu>
+      {data.map(chat => {
+        return (
+          <SidebarMenuItem key={chat.id}>
+            <SidebarMenuButton asChild>
+              <Link href={`/chat/${chat.id}`}>{chat.title}</Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        );
+      })}
+    </SidebarMenu>
+  );
+};
+
 export function AppSidebar() {
+  const trpc = useTRPC();
+  const { data, isLoading } = useQuery(trpc.chat.getAllByUserId.queryOptions());
+
   return (
     <Sidebar>
-      <SidebarHeader>
+      <SidebarHeader className="flex flex-row justify-between px-4">
+        MatChat
         <SidebarTrigger />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel>Chats</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map(item => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
+            <SidebarChatMenu isLoading={isLoading} data={data} />
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarRail />
     </Sidebar>
   );
 }

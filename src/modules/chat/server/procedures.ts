@@ -10,7 +10,7 @@ import { chat, message } from "@/db/schema";
 import { generateChatTitle } from "@/modules/chat/lib/ai/utils";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 export const chatRouter = createTRPCRouter({
@@ -18,7 +18,9 @@ export const chatRouter = createTRPCRouter({
     const chats = await db
       .select({ id: chat.id, title: chat.title })
       .from(chat)
-      .where(eq(chat.userId, ctx.auth.user.id));
+      .where(eq(chat.userId, ctx.auth.user.id))
+      .orderBy(desc(chat.createdAt))
+      .limit(100);
 
     return chats;
   }),
