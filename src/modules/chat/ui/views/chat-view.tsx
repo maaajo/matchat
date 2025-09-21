@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Announcement, AnnouncementTitle } from "@/components/ui/announcement";
 import { MESSAGE_VARIANTS } from "@/modules/chat/lib/constants";
 
@@ -60,6 +60,7 @@ export const ChatView = ({
   lastValidResponseId,
 }: ChatViewProps) => {
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const [messages, setMessages] = useState<UIChatMessage[]>(chatMessages ?? []);
   const [chatTitle, setChatTitle] = useState<string | null>(
     initialTitle ?? null,
@@ -117,6 +118,7 @@ export const ChatView = ({
 
         createdChatIdRef.current = newChatId;
         window.history.replaceState(null, "", `/chat/${newChatId}`);
+        queryClient.invalidateQueries(trpc.chat.getAllByUserId.queryOptions());
       } catch (error) {
         toast.error(
           "Failed to start a new chat. Please try again, error: " + error,

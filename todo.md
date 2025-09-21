@@ -40,8 +40,16 @@
 - [x] Add chat id route
 - [x] Chat title now is causing layout shift done. we shoudl show empty with
       loading message and then render title when ready
-- [ ] Add sidebar
-- [ ] Add sidebar with past chats
+- [x] Add sidebar
+- [x] Add sidebar with past chats
+- [ ] Add is chat loading to the db
+- [ ] on chat insert set chat loading to true
+- [ ] on successfull generation of first message set isLoading to false
+- [ ] add this to the sidebar chats so they show it's loading
+- [ ] Add skeletons for past chats
+- [ ] add x icon to chats so we you can remove them
+- [ ] show only 100 chats, if wanting more then show button to load more
+- [ ] add search of chats
 - [ ] Add model name to the chat message
 - [ ] Add date to chat message?
 - [ ] Add start new chat
