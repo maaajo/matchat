@@ -47,11 +47,11 @@
 - [x] on successfull generation of first message set isLoading to false
 - [x] add this to the sidebar chats so they show it's loading
 - [x] check why isAtBottom is showing true always
-- [ ] Add skeletons for past chats
+- [x] Add skeletons for past chats
+- [x] add streamdown for markdown rendering
 - [ ] add x icon to chats so we you can remove them
 - [ ] show only 100 chats, if wanting more then show button to load more
 - [ ] add search of chats
-- [ ] add streamdown for markdown rendering
 - [ ] Add model name to the chat message
 - [ ] Add date to chat message?
 - [ ] Add start new chat

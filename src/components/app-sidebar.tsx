@@ -1,4 +1,3 @@
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 
@@ -17,35 +16,10 @@ import {
 import Link from "next/link";
 import { GetAllChatsOutput } from "@/modules/chat/server/types";
 import { Loader } from "@/components/ui/loader";
-
-// Menu items.
-const items = [
-  {
-    title: "Home",
-    url: "#",
-    icon: Home,
-  },
-  {
-    title: "Inbox",
-    url: "#",
-    icon: Inbox,
-  },
-  {
-    title: "Calendar",
-    url: "#",
-    icon: Calendar,
-  },
-  {
-    title: "Search",
-    url: "#",
-    icon: Search,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
-  },
-];
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 type SidebarChatMenuProps = {
   data?: GetAllChatsOutput;
@@ -53,20 +27,41 @@ type SidebarChatMenuProps = {
 };
 
 const SidebarChatMenu = ({ data, isLoading }: SidebarChatMenuProps) => {
-  if (!data) {
-    return null;
+  const pathname = usePathname();
+  if (isLoading) {
+    return (
+      <SidebarMenu>
+        {Array.from({ length: 20 }).map((_, index) => (
+          <SidebarMenuItem key={index}>
+            <SidebarMenuButton className="pointer-events-none px-2.5">
+              <div className="flex w-full flex-row items-center justify-between gap-x-2">
+                <Skeleton className="h-5 w-full" />
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        ))}
+      </SidebarMenu>
+    );
   }
 
-  if (isLoading) {
-    return <p>Loading</p>;
+  if (!data || data.length === 0) {
+    return null;
   }
 
   return (
     <SidebarMenu>
       {data.map(chat => {
+        const isActive = pathname?.includes(chat.id) ?? false;
         return (
           <SidebarMenuItem key={chat.id}>
-            <SidebarMenuButton asChild className="px-2.5">
+            <SidebarMenuButton
+              asChild
+              className={cn(
+                "px-2.5",
+                `${isActive ? "pointer-events-none" : null}`,
+              )}
+              isActive={isActive}
+            >
               <Link
                 href={`/chat/${chat.id}`}
                 className="flex flex-row justify-between gap-x-2"
@@ -96,13 +91,15 @@ export function AppSidebar() {
         MatChat
         <SidebarTrigger />
       </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Chats</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarChatMenu isLoading={isLoading} data={data} />
-          </SidebarGroupContent>
-        </SidebarGroup>
+      <SidebarContent className="overflow-hidden">
+        <ScrollArea className="h-full">
+          <SidebarGroup>
+            <SidebarGroupLabel>Chats</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarChatMenu isLoading={isLoading} data={data} />
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </ScrollArea>
       </SidebarContent>
     </Sidebar>
   );
