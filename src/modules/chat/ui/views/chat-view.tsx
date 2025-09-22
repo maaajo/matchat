@@ -43,6 +43,7 @@ import { useTRPC } from "@/trpc/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Announcement, AnnouncementTitle } from "@/components/ui/announcement";
 import { MESSAGE_VARIANTS } from "@/modules/chat/lib/constants";
+import { Streamdown } from "streamdown";
 
 type ChatViewProps = {
   userName?: string;
@@ -334,7 +335,7 @@ export const ChatView = ({
                       </div>
                     ) : (
                       <>
-                        <p>{content}</p>
+                        <Streamdown>{content}</Streamdown>
                         {msg.error ? (
                           <ChatMessageError>
                             {msg.errorMessage || "Something went wrong"}
